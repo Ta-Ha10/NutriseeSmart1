@@ -42,7 +42,7 @@ class CustomPageTransitions {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(1.0, 0.0);
+        const begin = Offset(0.12, 0.0);
         const end = Offset.zero;
         const curve = Curves.easeInOutCubic;
 
@@ -54,13 +54,20 @@ class CustomPageTransitions {
           CurvedAnimation(parent: animation, curve: Curves.easeInOutQuad),
         );
 
+        var scaleAnimation = Tween<double>(begin: 0.985, end: 1.0).animate(
+          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+        );
+
         return FadeTransition(
           opacity: fadeAnimation,
-          child: SlideTransition(position: slideAnimation, child: child),
+          child: SlideTransition(
+            position: slideAnimation,
+            child: ScaleTransition(scale: scaleAnimation, child: child),
+          ),
         );
       },
-      transitionDuration: const Duration(milliseconds: 450),
-      reverseTransitionDuration: const Duration(milliseconds: 300),
+      transitionDuration: const Duration(milliseconds: 520),
+      reverseTransitionDuration: const Duration(milliseconds: 360),
     );
   }
 

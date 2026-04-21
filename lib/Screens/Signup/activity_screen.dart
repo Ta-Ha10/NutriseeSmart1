@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
-
 import '../../utils/page_transitions.dart';
 import '../../utils/user_data.dart';
 import '../../utils/widgets.dart';
@@ -42,72 +40,40 @@ class _ActivityScreenState extends State<ActivityScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(25, 10, 25, 15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              IndicatorHeader(activeIndex: 6, totalCount: 13),
-              Gap(20),
-              // Dashed line separato
-              Center(
-                child: RichText(
-                  textAlign: TextAlign.center,
-                  text: const TextSpan(
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                    children: [
-                      TextSpan(text: "How "),
-                      TextSpan(
-                        text: "active",
-                        style: TextStyle(
-                          color: Colors.green,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextSpan(
-                        text: " are you",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextSpan(
-                        text: " ?",
-                        style: TextStyle(
-                          color: Color(0xff13EC5B),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+        child: SignupStepBody(
+          activeIndex: 6,
+          title: RichText(
+            textAlign: TextAlign.center,
+            text: const TextSpan(
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              children: [
+                TextSpan(text: "How "),
+                TextSpan(
+                  text: "active",
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              // Behind the question
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Behind the question",
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                TextSpan(text: " are you"),
+                TextSpan(
+                  text: " ?",
+                  style: TextStyle(
+                    color: Color(0xff13EC5B),
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => _showExplanationDialog(context, "activity"),
-                    child: Icon(
-                      Icons.help_outline,
-                      size: 16,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              // Activity level label
+                ),
+              ],
+            ),
+          ),
+          onHelpPressed: () => _showExplanationDialog(context, "activity"),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               const Text(
                 "What About you Activity Level",
                 style: TextStyle(
@@ -117,7 +83,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Activity options list
               Expanded(
                 child: ListView.builder(
                   itemCount: options.length,
@@ -126,39 +91,37 @@ class _ActivityScreenState extends State<ActivityScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 16),
-              selectedIndex != null
-                  ? NextButton(
-                      onPressed: () {
-                        signupData.activityLevel = selectedIndex;
-                        Navigator.push(
-                          context,
-                          CustomPageTransitions.slideAndFadeTransition(
-                            const MealGoalScreen(),
-                          ),
-                        );
-                      },
-                    )
-                  : Container(
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[400],
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Select your activity level to continue',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-              const SizedBox(height: 16),
             ],
           ),
+          bottomAction: selectedIndex != null
+              ? NextButton(
+                  onPressed: () {
+                    signupData.activityLevel = selectedIndex;
+                    Navigator.push(
+                      context,
+                      CustomPageTransitions.slideAndFadeTransition(
+                        const MealGoalScreen(),
+                      ),
+                    );
+                  },
+                )
+              : Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Select your activity level to continue',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
         ),
       ),
     );

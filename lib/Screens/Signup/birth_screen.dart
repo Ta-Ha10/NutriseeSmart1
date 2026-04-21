@@ -102,113 +102,59 @@ class _BirthScreenState extends State<BirthScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xffF2EDE9),
-
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(25, 10, 25, 15),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
+      body: SignupStepBody(
+        activeIndex: 1,
+        title: RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            style: const TextStyle(
+              fontSize: 20,
+              color: Colors.black,
+              fontWeight: FontWeight.w600,
+            ),
             children: [
-              //  Gap(40),
-              Row(
+              const TextSpan(
+                text: "When were you ",
+                style: TextStyle(fontSize: 25),
+              ),
+              TextSpan(
+                text: "born ?",
+                style: TextStyle(
+                  color: const Color(0xff13EC5B),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 25,
+                ),
+              ),
+            ],
+          ),
+        ),
+        onHelpPressed: () => _showExplanationDialog(context, "birth_date"),
+        content: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _displayDate,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const Gap(26),
+            Container(
+              height: 300,
+              decoration: BoxDecoration(
+                color: Color(0xffF2EDE9),
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back_ios),
-                    color: Colors.black,
-                    iconSize: 28,
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Spacer(),
-                  AnimatedIndicator(
-                    activeIndex: 0,
-                    count: 13,
-                    animationDuration: const Duration(milliseconds: 400),
-                    activeColor: const Color(0xff13EC5B),
-                    inactiveColor: const Color(0xFFCCCCCC),
-                    dotSize: 10.0,
-                  ),
-                  const Spacer(),
-                  Gap(30),
-                ],
-              ),
-              Gap(60),
-              RichText(
-                textAlign: TextAlign.start,
-                text: TextSpan(
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  children: [
-                    const TextSpan(
-                      text: "When were you ",
-                      style: TextStyle(fontSize: 25),
-                    ),
-                    TextSpan(
-                      text: "born ?",
-                      style: TextStyle(
-                        color: const Color(0xff13EC5B),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 25,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Behind the question
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Behind the question",
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => _showExplanationDialog(context, "birth_date"),
-                    child: Icon(
-                      Icons.help_outline,
-                      size: 16,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
-
-              // Date Display
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                  horizontal: 20,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _displayDate,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-
-              Gap(30),
-
-              // Date Wheels
-              Container(
-                height: 300,
-                decoration: BoxDecoration(
-                  color: Color(0xffF2EDE9),
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
                     // Day Wheel
                     Expanded(
                       child: CupertinoPicker(
@@ -286,46 +232,42 @@ class _BirthScreenState extends State<BirthScreen> {
                         }),
                       ),
                     ),
-                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+        bottomAction: _isBirthDateSelected
+            ? NextButton(
+                onPressed: () {
+                  signupData.birthDay = _selectedDay;
+                  signupData.birthMonth = _selectedMonth;
+                  signupData.birthYear = _selectedYear;
+                  Navigator.push(
+                    context,
+                    CustomPageTransitions.slideAndFadeTransition(
+                      const GenderScreen(),
+                    ),
+                  );
+                },
+              )
+            : Container(
+                height: 56,
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Select your birth date to continue',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
-
-              const Spacer(),
-              _isBirthDateSelected
-                  ? NextButton(
-                      onPressed: () {
-                        signupData.birthDay = _selectedDay;
-                        signupData.birthMonth = _selectedMonth;
-                        signupData.birthYear = _selectedYear;
-                        Navigator.push(
-                          context,
-                          CustomPageTransitions.slideAndFadeTransition(
-                            const GenderScreen(),
-                          ),
-                        );
-                      },
-                    )
-                  : Container(
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[400],
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Select your birth date to continue',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
       ),
     );
   }

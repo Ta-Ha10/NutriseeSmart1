@@ -174,7 +174,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   children: [
                     Gap(60),
-                    Image.asset('assets/G_Logo.png', height: 150),
+                    Hero(
+                      tag: 'app-logo',
+                      child: Image.asset('assets/G_Logo.png', height: 150),
+                    ),
                     const SizedBox(height: 8),
                   ],
                 ),

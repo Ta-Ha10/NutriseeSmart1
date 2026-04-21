@@ -12,8 +12,9 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late AnimationController _logoController;
-  late AnimationController _textController;
-  late AnimationController _taglineController;
+  late Animation<Offset> _logoSlideAnimation;
+  late Animation<double> _logoScaleAnimation;
+  late Animation<double> _logoRotationAnimation;
 
   @override
   void initState() {
@@ -21,15 +22,26 @@ class _SplashScreenState extends State<SplashScreen>
 
     _logoController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 950),
     );
-    _textController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
+
+    _logoSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.35),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeOutCubic),
     );
-    _taglineController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
+    _logoScaleAnimation = Tween<double>(
+      begin: 0.78,
+      end: 1,
+    ).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
+    );
+    _logoRotationAnimation = Tween<double>(
+      begin: -0.08,
+      end: 0,
+    ).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeOutCubic),
     );
 
     _startAnimation();
@@ -38,21 +50,17 @@ class _SplashScreenState extends State<SplashScreen>
   // Updated: navigate to login after animations finish.
   Future<void> _startAnimation() async {
     await _logoController.forward();
-    await _textController.forward();
-    await _taglineController.forward();
 
     // small pause so user sees full splash
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 900));
 
     if (!mounted) return;
-    Navigator.pushReplacementNamed(context, '/login');
+   Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
   void dispose() {
     _logoController.dispose();
-    _textController.dispose();
-    _taglineController.dispose();
     super.dispose();
   }
 
@@ -61,69 +69,37 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFF7F6F2),
       body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              /// LOGO + APP NAME & TAGLINE
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  /// LOGO
-                  ScaleTransition(
-                    scale: CurvedAnimation(
-                      parent: _logoController,
-                      curve: Curves.easeOutBack,
-                    ),
-                    child: const _LogoLoader(height: 90),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  /// APP NAME & TAGLINE
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      /// APP NAME
-                      FadeTransition(
-                        opacity: _textController,
-                        child: const Text(
-                          'NutriSeseSmart',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF4CAF50),
-                          ),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFF8F7F1), Color(0xFFF2EFE8)],
+            ),
+          ),
+          child: Center(
+            child: FadeTransition(
+              opacity: _logoController,
+              child: SlideTransition(
+                position: _logoSlideAnimation,
+                child: Hero(
+                  tag: 'app-logo',
+                  child: AnimatedBuilder(
+                    animation: _logoController,
+                    child: const _LogoLoader(height: 350),
+                    builder: (context, child) {
+                      return Transform.rotate(
+                        angle: _logoRotationAnimation.value,
+                        child: Transform.scale(
+                          scale: _logoScaleAnimation.value,
+                          child: child,
                         ),
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      /// TAGLINE
-                      FadeTransition(
-                        opacity: _taglineController,
-                        child: const Text(
-                          '\t\t\t\t\t\t\t\t\t\t\tPersonalized for You',
-                          textAlign: TextAlign.center,
-
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                ],
+                ),
               ),
-
-              const SizedBox(height: 40),
-
-              // Email TextField
-              // Password TextField
-              // Login Button
-            ],
+            ),
           ),
         ),
       ),
@@ -134,12 +110,9 @@ class _SplashScreenState extends State<SplashScreen>
 // Updated: load a PNG asset and fall back to an icon if loading fails.
 class _LogoLoader extends StatelessWidget {
   final double height;
-  final String assetPath;
 
   const _LogoLoader({
-    this.height = 90,
-    this.assetPath = 'assets/logo.png',
-    super.key,
+    this.height = 100,
   });
 
   @override
@@ -148,7 +121,7 @@ class _LogoLoader extends StatelessWidget {
       height: height,
       width: height,
       child: Image.asset(
-        assetPath,
+        'assets/S_logo.png',
         height: height,
         width: height,
         fit: BoxFit.contain,

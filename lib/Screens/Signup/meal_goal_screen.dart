@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
-
 import '../../utils/page_transitions.dart';
 import '../../utils/user_data.dart';
 import '../../utils/widgets.dart';
@@ -21,83 +19,39 @@ class _MealGoalScreenState extends State<MealGoalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(25, 10, 25, 15),
-          child: Column(
+        child: SignupStepBody(
+          activeIndex: 7,
+          title: RichText(
+            textAlign: TextAlign.center,
+            text: const TextSpan(
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              children: [
+                TextSpan(text: "How often should we\nupdate your "),
+                TextSpan(
+                  text: "plan",
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(
+                  text: "?",
+                  style: TextStyle(
+                    color: Color(0xff13EC5B),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          onHelpPressed: () => _showExplanationDialog(context, "meal_goal"),
+          content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back_ios),
-                    color: Colors.black,
-                    iconSize: 28,
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Spacer(),
-                  AnimatedIndicator(
-                    activeIndex: 7,
-                    count: 13,
-                    animationDuration: const Duration(milliseconds: 400),
-                    activeColor: const Color(0xff13EC5B),
-                    inactiveColor: const Color(0xFFCCCCCC),
-                    dotSize: 10.0,
-                  ),
-                  const Spacer(),
-                  Gap(30),
-                ],
-              ),
-              Gap(20),
-
-              // Header with styled text
-              RichText(
-                text: const TextSpan(
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                  children: [
-                    TextSpan(text: "How often should we\nupdate your "),
-                    TextSpan(
-                      text: "plan",
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextSpan(
-                      text: "?",
-                      style: TextStyle(
-                        color: Color(0xff13EC5B),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Behind the question
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Behind the question",
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => _showExplanationDialog(context, "meal_goal"),
-                    child: Icon(
-                      Icons.help_outline,
-                      size: 16,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              // Meal Planning Goal label
               const Text(
                 "Meal Planning Goal",
                 style: TextStyle(
@@ -107,7 +61,6 @@ class _MealGoalScreenState extends State<MealGoalScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Options list
               Expanded(
                 child: ListView.builder(
                   itemCount: options.length,
@@ -143,7 +96,6 @@ class _MealGoalScreenState extends State<MealGoalScreen> {
                                 color: Colors.black,
                               ),
                             ),
-                            // Recommended badge for first option
                             if (index == 0)
                               Positioned(
                                 right: 20,
@@ -174,39 +126,37 @@ class _MealGoalScreenState extends State<MealGoalScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 16),
-              selectedIndex != null
-                  ? NextButton(
-                      onPressed: () {
-                        signupData.mealGoal = selectedIndex;
-                        Navigator.push(
-                          context,
-                          CustomPageTransitions.slideAndFadeTransition(
-                            const WorkoutFrequencyScreen(),
-                          ),
-                        );
-                      },
-                    )
-                  : Container(
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[400],
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Select a plan frequency to continue',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-              const SizedBox(height: 16),
             ],
           ),
+          bottomAction: selectedIndex != null
+              ? NextButton(
+                  onPressed: () {
+                    signupData.mealGoal = selectedIndex;
+                    Navigator.push(
+                      context,
+                      CustomPageTransitions.slideAndFadeTransition(
+                        const WorkoutFrequencyScreen(),
+                      ),
+                    );
+                  },
+                )
+              : Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Select a plan frequency to continue',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
         ),
       ),
     );
