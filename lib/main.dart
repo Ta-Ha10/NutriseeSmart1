@@ -9,6 +9,7 @@ import 'Screens/Signup/birth_screen.dart';
 import 'Screens/Signup/breakfast_time_screen.dart';
 import 'Screens/Signup/current_weight_screen.dart' show CurrentWeightScreen;
 import 'Screens/Signup/dinner_time_screen.dart';
+import 'Screens/Signup/email_verification_screen.dart';
 import 'Screens/Signup/goal_weight_screen.dart';
 import 'Screens/Signup/ingredient_search_screen.dart';
 import 'Screens/Signup/loading_screen.dart';
@@ -48,6 +49,16 @@ class MyApp extends StatelessWidget {
       // Open SplashScreen first
       home: SplashScreen(), // changed from NameInputScreen to SplashScreen
       onGenerateRoute: (settings) {
+        // Handle email verification route with email parameter
+        if (settings.name == '/email_verification') {
+          final email = settings.arguments as String?;
+          if (email != null) {
+            return CustomPageTransitions.slideAndFadeTransition(
+              EmailVerificationScreen(email: email),
+            );
+          }
+        }
+        
         final Widget page = _buildPage(settings.name ?? '');
         if (page != const SizedBox.shrink()) {
           return CustomPageTransitions.slideAndFadeTransition(page);

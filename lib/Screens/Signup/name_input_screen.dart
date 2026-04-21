@@ -21,6 +21,11 @@ class _NameInputScreenState extends State<NameInputScreen> {
   @override
   void initState() {
     super.initState();
+    // Pre-fill name if available from Google Sign-In
+    if (signupData.name != null && signupData.name!.isNotEmpty) {
+      _nameController.text = signupData.name!;
+      _isNameValid = true;
+    }
     _nameController.addListener(_validateName);
   }
 

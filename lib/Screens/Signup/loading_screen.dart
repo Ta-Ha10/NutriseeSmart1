@@ -89,13 +89,22 @@ class _LoadingScreenState extends State<LoadingScreen>
   Future<void> _performCalculationAndSave() async {
     widget.userData.calculateMetrics();
 
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      try {
-        await FirestoreService.saveUserData(widget.userData);
-      } catch (error) {
-        // Logging or error handling can be added here if needed.
+    try {
+      // If Google Sign-In, create the account now (at the end of signup)
+      if (widget.userData.isGoogleSignIn && 
+          widget.userData.googleIdToken != null && 
+          widget.userData.googleAccessToken != null) {
+        final credential = GoogleAuthProvider.credential(
+          accessToken: widget.userData.googleAccessToken!,
+          idToken: widget.userData.googleIdToken!,
+        );
+        await FirebaseAuth.instance.signInWithCredential(credential);
       }
+
+      // Note: Data saving moved to home screen navigation
+    } catch (error) {
+      // Handle any errors during account creation
+      print('Error during account creation: $error');
     }
 
     await Future.delayed(const Duration(seconds: 2));

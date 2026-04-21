@@ -14,6 +14,12 @@ class UserData {
   int? activityLevel; // 0: Sedentary, 1: Lightly Active, 2: Moderate, 3: Active, 4: Very Active
   int? mealGoal; // 0: Weekly Plan, 1: Daily Plan, 2: Single Meal
   String? email; // Email from authentication, null if not entered
+  String? password; // Password for email/password signup
+  
+  // Google Sign-In fields
+  String? googleIdToken;
+  String? googleAccessToken;
+  bool isGoogleSignIn = false;
 
   // Additional signup fields
   List<String>? workoutDays; // e.g., ['Monday', 'Wednesday', 'Friday']

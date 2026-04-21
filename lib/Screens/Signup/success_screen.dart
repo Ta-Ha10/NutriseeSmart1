@@ -19,7 +19,11 @@ class _SuccessScreenState extends State<SuccessScreen> {
 
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/auth_method');
+      if (_shouldReturnToAuthMethod) {
+        Navigator.pushReplacementNamed(context, '/auth_method');
+      } else {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     });
   }
 

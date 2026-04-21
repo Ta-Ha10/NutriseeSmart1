@@ -1,11 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../Screens/Signup/meals_screen.dart';
+import '../services/firestore_service.dart';
+import '../utils/user_data.dart';
 import '../widgets/components.dart';
 import 'workout_screen.dart'; // added import
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _saveSignupDataIfNeeded();
+  }
+
+  Future<void> _saveSignupDataIfNeeded() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null && signupData.name != null) {
+      // Check if user data already exists
+      final existingData = await FirestoreService.getUserData(user.uid);
+      if (existingData == null || existingData.isEmpty) {
+        // Save signup data since it doesn't exist
+        try {
+          await FirestoreService.saveUserData(signupData);
+          // Clear signup data after saving
+          signupData.name = null;
+          signupData.email = null;
+          signupData.password = null;
+          signupData.googleIdToken = null;
+          signupData.googleAccessToken = null;
+          signupData.isGoogleSignIn = false;
+        } catch (error) {
+          // Handle error if needed
+          print('Error saving user data: $error');
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

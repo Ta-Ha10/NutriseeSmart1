@@ -1,10 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:gap/gap.dart';
 import '../../utils/page_transitions.dart';
 import '../../utils/widgets.dart';
 import '../../utils/user_data.dart';
-import 'loading_screen.dart';
 
 class ReviewScreen extends StatefulWidget {
   const ReviewScreen({super.key});
@@ -200,16 +201,34 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 ],
               ),
             ),
-            // Confirm button - goes to loading screen
+            // Confirm button - goes directly to home page
             NextButton(
               label: 'Confirm & Start',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  CustomPageTransitions.slideAndFadeTransition(
-                    LoadingScreen(userData: signupData),
-                  ),
-                );
+              onPressed: () async {
+                // Perform final calculations
+                signupData.calculateMetrics();
+                
+                // Handle Google Sign-In authentication if needed
+                if (signupData.isGoogleSignIn && 
+                    signupData.googleIdToken != null && 
+                    signupData.googleAccessToken != null) {
+                  try {
+                    final credential = GoogleAuthProvider.credential(
+                      accessToken: signupData.googleAccessToken!,
+                      idToken: signupData.googleIdToken!,
+                    );
+                    await FirebaseAuth.instance.signInWithCredential(credential);
+                  } catch (error) {
+                    // Handle authentication error
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Authentication failed: $error')),
+                    );
+                    return;
+                  }
+                }
+                
+                // Navigate directly to home page
+                Navigator.pushReplacementNamed(context, '/auth_method');
               },
             ),
           ],
