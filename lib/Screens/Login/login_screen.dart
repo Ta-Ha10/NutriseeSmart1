@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../Signup/name_input_screen.dart';
@@ -172,6 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Center(
                 child: Column(
                   children: [
+                    Gap(60),
                     Image.asset('assets/G_Logo.png', height: 150),
                     const SizedBox(height: 8),
                   ],

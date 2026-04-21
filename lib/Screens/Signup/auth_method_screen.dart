@@ -2,6 +2,7 @@
 import 'package:gap/gap.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../services/firestore_service.dart';
 import '../../utils/page_transitions.dart';
 import '../../utils/widgets.dart';
 import '../../utils/user_data.dart';
@@ -14,6 +15,8 @@ class AuthMethodScreen extends StatefulWidget {
 }
 
 class _AuthMethodScreenState extends State<AuthMethodScreen> {
+  bool _isGoogleLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,9 +38,25 @@ class _AuthMethodScreenState extends State<AuthMethodScreen> {
               ],
             ),
             Gap(20),
-            const Text(
-              "Choose Signup Method",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+            RichText(
+              text: TextSpan(
+                style: const TextStyle(
+                  fontSize: 29,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+                children: [
+                  const TextSpan(
+                    text: "Choose your ",
+                    style: TextStyle(fontSize: 29),
+                  ),
+                  TextSpan(
+                    text: "Signup",
+                    style: const TextStyle(color: Colors.green, fontSize: 29),
+                  ),
+                  const TextSpan(text: " Method?"),
+                ],
+              ),
             ),
             const SizedBox(height: 12),
             const Text(
@@ -68,57 +87,97 @@ class _AuthMethodScreenState extends State<AuthMethodScreen> {
               icon: Icons.g_mobiledata,
               title: "Google",
               subtitle: "Continue with Google account",
-              onTap: () async {
-                await _signInWithGoogle(context);
-              },
+              onTap: _isGoogleLoading ? () {} : () async => _signInWithGoogle(),
             ),
+            if (_isGoogleLoading) ...[
+              const SizedBox(height: 24),
+              const CircularProgressIndicator(color: Colors.green),
+            ],
             const Spacer(),
-            // Skip for now button
-            TextButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/navigator');
-              },
-              child: const Text(
-                "Skip for now",
-                style: TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-            ),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _signInWithGoogle(BuildContext context) async {
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isGoogleLoading = true;
+    });
+
     try {
-      final googleUser = await GoogleSignIn(scopes: ['email']).signIn();
+      final googleSignIn = GoogleSignIn(scopes: ['email']);
+      await googleSignIn.signOut();
+
+      final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
+        return;
+      }
+
+      final emailAlreadyRegistered = await FirestoreService
+          .emailAlreadyRegistered(googleUser.email);
+      if (emailAlreadyRegistered) {
+        await googleSignIn.signOut();
+        if (mounted) {
+          _showErrorDialog(
+            context,
+            'This Google email is already registered. Please log in instead.',
+          );
+        }
         return;
       }
 
       final googleAuth = await googleUser.authentication;
       if (googleAuth.idToken == null || googleAuth.accessToken == null) {
-        _showErrorDialog(context, 'Google sign-in failed: missing authentication token.');
+        if (!mounted) return;
+        _showErrorDialog(
+          context,
+          'Google sign-in failed: missing authentication token.',
+        );
         return;
       }
 
-      // DO NOT create Firebase account yet - just store the info
-      if (mounted) {
-        signupData.email = googleUser.email;
-        signupData.googleIdToken = googleAuth.idToken;
-        signupData.googleAccessToken = googleAuth.accessToken;
-        signupData.isGoogleSignIn = true;
-        
-        // Pre-fill name from Google if available
-        if (googleUser.displayName != null && googleUser.displayName!.isNotEmpty) {
-          signupData.name = googleUser.displayName!;
-        }
-        Navigator.pushReplacementNamed(context, '/navigator');
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      if (!mounted) return;
+
+      signupData.email =
+          FirebaseAuth.instance.currentUser?.email ?? googleUser.email;
+      signupData.password = null;
+      signupData.googleIdToken = null;
+      signupData.googleAccessToken = null;
+      signupData.isGoogleSignIn = true;
+
+      // Only pre-fill the name when the user hasn't already entered one.
+      if ((signupData.name == null || signupData.name!.trim().isEmpty) &&
+          googleUser.displayName != null &&
+          googleUser.displayName!.isNotEmpty) {
+        signupData.name = googleUser.displayName!;
       }
+      Navigator.pushReplacementNamed(context, '/loading');
     } on FirebaseAuthException catch (e) {
-      _showErrorDialog(context, 'Google sign-in failed: ${e.message ?? e.code}');
+      if (!mounted) return;
+      final message =
+          e.code == 'account-exists-with-different-credential'
+              ? 'This email is already registered. Please log in instead.'
+              : 'Google sign-in failed: ${e.message ?? e.code}';
+      _showErrorDialog(
+        context,
+        message,
+      );
     } catch (e) {
+      if (!mounted) return;
       _showErrorDialog(context, 'Google sign-in failed: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGoogleLoading = false;
+        });
+      }
     }
   }
 
@@ -140,8 +199,13 @@ class _AuthMethodScreenState extends State<AuthMethodScreen> {
     );
   }
 
-  Widget _buildAuthOption(BuildContext context,
-      {required IconData icon, required String title, required String subtitle, required VoidCallback onTap}) {
+  Widget _buildAuthOption(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -154,7 +218,7 @@ class _AuthMethodScreenState extends State<AuthMethodScreen> {
               color: Colors.black.withOpacity(0.05),
               blurRadius: 8,
               offset: const Offset(0, 4),
-            )
+            ),
           ],
         ),
         child: Row(
@@ -174,7 +238,11 @@ class _AuthMethodScreenState extends State<AuthMethodScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -260,21 +328,6 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
     }
   }
 
-  String _getErrorMessage(String errorCode) {
-    switch (errorCode) {
-      case 'email-already-in-use':
-        return 'An account already exists with this email address.';
-      case 'invalid-email':
-        return 'Please enter a valid email address.';
-      case 'weak-password':
-        return 'Password should be at least 6 characters long.';
-      case 'network-request-failed':
-        return 'Network error. Please check your internet connection.';
-      default:
-        return 'An error occurred. Please try again.';
-    }
-  }
-
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter your email';
@@ -331,7 +384,11 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
               Gap(20),
               const Text(
                 "Create Account",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
               const SizedBox(height: 12),
               const Text(
@@ -344,7 +401,9 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
                 controller: _emailController,
                 decoration: InputDecoration(
                   labelText: "Email",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   prefixIcon: const Icon(Icons.email),
                 ),
                 keyboardType: TextInputType.emailAddress,
@@ -356,7 +415,9 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: "Password",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: const Icon(Icons.visibility_off),
                 ),
@@ -369,7 +430,9 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
                 controller: _confirmPasswordController,
                 decoration: InputDecoration(
                   labelText: "Confirm Password",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: const Icon(Icons.visibility_off),
                 ),
@@ -393,7 +456,10 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
                       Expanded(
                         child: Text(
                           _errorMessage!,
-                          style: const TextStyle(color: Colors.red, fontSize: 14),
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
                     ],
@@ -404,9 +470,11 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
               // Sign in link
               Center(
                 child: TextButton(
-                  onPressed: _isLoading ? null : () {
-                    Navigator.pushReplacementNamed(context, '/login');
-                  },
+                  onPressed: _isLoading
+                      ? null
+                      : () {
+                          Navigator.pushReplacementNamed(context, '/login');
+                        },
                   child: RichText(
                     text: const TextSpan(
                       text: "Already have an account? ",

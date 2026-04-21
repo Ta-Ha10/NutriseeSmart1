@@ -30,18 +30,14 @@ class _HomeScreenState extends State<HomeScreen> {
         // Save signup data since it doesn't exist
         try {
           await FirestoreService.saveUserData(signupData);
-          // Clear signup data after saving
-          signupData.name = null;
-          signupData.email = null;
-          signupData.password = null;
-          signupData.googleIdToken = null;
-          signupData.googleAccessToken = null;
-          signupData.isGoogleSignIn = false;
+          signupData.clearSignupState();
           print('User data saved to Firebase successfully');
         } catch (error) {
           // Handle error if needed
           print('Error saving user data: $error');
         }
+      } else {
+        signupData.clearSignupState();
       }
     }
   }

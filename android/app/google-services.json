@@ -1,0 +1,90 @@
+{
+  "project_info": {
+    "project_number": "37225278961",
+    "project_id": "nutriseesmart-9930c",
+    "storage_bucket": "nutriseesmart-9930c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:37225278961:android:e6239c9bb868f625cde850",
+        "android_client_info": {
+          "package_name": "com.example.nutriseesmart1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "37225278961-eqlvf27dijc1gfmuhjd77iid9eshgsnp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7EvY4-Kb4nYmHUzTDqgDt63tNdysHVjA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "37225278961-eqlvf27dijc1gfmuhjd77iid9eshgsnp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "37225278961-2cp7669nn8kpfhpqtq57nctth27et12q.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.nutrsesmart"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:37225278961:android:5532b85c7f2d3c27cde850",
+        "android_client_info": {
+          "package_name": "com.example.nutrsesmart"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "37225278961-t57antnjb0eor3ngunimh1v6g75tb7q3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.nutrsesmart",
+            "certificate_hash": "3b0d1134c302392c891dfcee10f3543a2130d3ea"
+          }
+        },
+        {
+          "client_id": "37225278961-eqlvf27dijc1gfmuhjd77iid9eshgsnp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7EvY4-Kb4nYmHUzTDqgDt63tNdysHVjA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "37225278961-eqlvf27dijc1gfmuhjd77iid9eshgsnp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "37225278961-2cp7669nn8kpfhpqtq57nctth27et12q.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.nutrsesmart"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

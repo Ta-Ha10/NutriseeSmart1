@@ -183,6 +183,35 @@ class UserData {
       'updated_at': FieldValue.serverTimestamp(),
     };
   }
+
+  void clearSignupState() {
+    name = null;
+    birthDay = null;
+    birthMonth = null;
+    birthYear = null;
+    gender = null;
+    heightCm = null;
+    currentWeight = null;
+    goalWeight = null;
+    hasObesity = null;
+    activityLevel = null;
+    mealGoal = null;
+    email = null;
+    password = null;
+    googleIdToken = null;
+    googleAccessToken = null;
+    isGoogleSignIn = false;
+    workoutDays = null;
+    mealTimes = null;
+    bmi = null;
+    bmiCategory = null;
+    bmr = null;
+    tdee = null;
+    targetCalories = null;
+    proteinGrams = null;
+    fatGrams = null;
+    carbGrams = null;
+  }
 }
 
 final signupData = UserData();

@@ -295,7 +295,7 @@ class _HeightScreenState extends State<HeightScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 130),
+                const SizedBox(height: 150),
                 _heightCm != null
                     ? NextButton(
                         onPressed: () {

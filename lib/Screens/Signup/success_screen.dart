@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class SuccessScreen extends StatefulWidget {
@@ -9,29 +8,19 @@ class SuccessScreen extends StatefulWidget {
 }
 
 class _SuccessScreenState extends State<SuccessScreen> {
-  late final bool _shouldReturnToAuthMethod;
-
   @override
   void initState() {
     super.initState();
-    final currentUser = FirebaseAuth.instance.currentUser;
-    _shouldReturnToAuthMethod = currentUser != null && !currentUser.emailVerified;
 
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
-      if (_shouldReturnToAuthMethod) {
-        Navigator.pushReplacementNamed(context, '/auth_method');
-      } else {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
+      Navigator.pushReplacementNamed(context, '/home');
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final message = _shouldReturnToAuthMethod
-        ? 'Success! Check your email for verification and return to sign in.'
-        : 'Success! You are being redirected to the home page.';
+    const message = 'Success! You are being redirected to the home page.';
 
     return Scaffold(
       body: Center(

@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../services/firestore_service.dart';
@@ -90,26 +89,21 @@ class _LoadingScreenState extends State<LoadingScreen>
     widget.userData.calculateMetrics();
 
     try {
-      // If Google Sign-In, create the account now (at the end of signup)
-      if (widget.userData.isGoogleSignIn && 
-          widget.userData.googleIdToken != null && 
-          widget.userData.googleAccessToken != null) {
-        final credential = GoogleAuthProvider.credential(
-          accessToken: widget.userData.googleAccessToken!,
-          idToken: widget.userData.googleIdToken!,
-        );
-        await FirebaseAuth.instance.signInWithCredential(credential);
-      }
-
-      // Note: Data saving moved to home screen navigation
+      await FirestoreService.saveUserData(widget.userData);
     } catch (error) {
-      // Handle any errors during account creation
-      print('Error during account creation: $error');
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not complete signup: $error')),
+      );
+      Navigator.pushReplacementNamed(context, '/auth_method');
+      return;
     }
 
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
+    widget.userData.clearSignupState();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const SuccessScreen()),

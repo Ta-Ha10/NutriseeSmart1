@@ -70,4 +70,14 @@ class FirestoreService {
     final doc = await _firestore.collection('users').doc(uid).get();
     return doc.data();
   }
+
+  static Future<bool> emailAlreadyRegistered(String email) async {
+    final snapshot = await _firestore
+        .collection('users')
+        .where('personalData.email', isEqualTo: email)
+        .limit(1)
+        .get();
+
+    return snapshot.docs.isNotEmpty;
+  }
 }
