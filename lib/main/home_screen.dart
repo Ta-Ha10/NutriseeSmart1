@@ -37,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
           signupData.googleIdToken = null;
           signupData.googleAccessToken = null;
           signupData.isGoogleSignIn = false;
+          print('User data saved to Firebase successfully');
         } catch (error) {
           // Handle error if needed
           print('Error saving user data: $error');

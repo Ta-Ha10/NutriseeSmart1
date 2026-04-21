@@ -45,6 +45,7 @@ dependencies:
   cloud_firestore: ^6.3.0
   mailer: ^6.4.5
   crypto: ^3.0.7
+  http: ^1.6.0
 
 
 dev_dependencies:

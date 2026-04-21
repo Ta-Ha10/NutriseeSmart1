@@ -5,7 +5,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../../utils/page_transitions.dart';
 import '../../utils/widgets.dart';
 import '../../utils/user_data.dart';
-import '../../services/email_verification_service.dart';
 
 class AuthMethodScreen extends StatefulWidget {
   const AuthMethodScreen({super.key});
@@ -228,22 +227,20 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
 
-      // Generate verification token and store temporarily
-      final token = await EmailVerificationService.generateVerificationToken(email, password);
-
-      // TODO: Send verification email with token
-      // For now, log the token for testing
-      print('Verification Token: $token');
-      print('Email: $email');
+      // Store email and password in signupData temporarily (NOT in Firebase Auth yet)
+      signupData.email = email;
+      signupData.password = password;
+      signupData.isGoogleSignIn = false;
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Verification email sent! Please check your inbox.'),
+            content: Text('Verification email sent to your inbox.'),
             backgroundColor: Colors.green,
           ),
         );
 
+        // Navigate to email verification screen (email not yet in Firebase Auth)
         Navigator.pushReplacementNamed(
           context,
           '/email_verification',
@@ -252,7 +249,7 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _errorMessage = 'An error occurred. Please try again.';
       });
     } finally {
       if (mounted) {
