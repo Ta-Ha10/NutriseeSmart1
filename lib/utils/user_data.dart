@@ -140,6 +140,23 @@ class UserData {
     return labels[mealGoal!];
   }
 
+  bool get hasProfileData {
+    return name != null ||
+        birthDay != null ||
+        birthMonth != null ||
+        birthYear != null ||
+        gender != null ||
+        heightCm != null ||
+        currentWeight != null ||
+        goalWeight != null ||
+        hasObesity != null ||
+        activityLevel != null ||
+        mealGoal != null ||
+        email != null ||
+        (workoutDays?.isNotEmpty ?? false) ||
+        (mealTimes?.isNotEmpty ?? false);
+  }
+
   Map<String, dynamic> toFirestoreMap() {
     calculateMetrics();
 
@@ -148,7 +165,7 @@ class UserData {
       'birthDay': birthDay,
       'birthMonth': birthMonth,
       'birthYear': birthYear,
-      'age': age,
+      if (birthYear != null) 'age': age,
       'gender': gender,
       'heightCm': heightCm,
       'currentWeight': currentWeight,
@@ -165,7 +182,7 @@ class UserData {
       personalData['email'] = email;
     }
 
-    return {
+    return _removeNullValues({
       'personalData': personalData,
       'dietPlan': {
         'bmi': bmi,
@@ -181,7 +198,37 @@ class UserData {
       'dislikedRecipes': dislikedRecipes ?? [],
       'ratings': recipeRatings ?? {},
       'updated_at': FieldValue.serverTimestamp(),
-    };
+    });
+  }
+
+  Map<String, dynamic> _removeNullValues(Map<String, dynamic> input) {
+    final cleaned = <String, dynamic>{};
+
+    input.forEach((key, value) {
+      final sanitizedValue = _sanitizeValue(value);
+      if (sanitizedValue != null) {
+        cleaned[key] = sanitizedValue;
+      }
+    });
+
+    return cleaned;
+  }
+
+  dynamic _sanitizeValue(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
+    if (value is Map<String, dynamic>) {
+      final cleanedMap = _removeNullValues(value);
+      return cleanedMap.isEmpty ? null : cleanedMap;
+    }
+
+    if (value is List) {
+      return value.where((item) => item != null).toList();
+    }
+
+    return value;
   }
 
   void clearSignupState() {

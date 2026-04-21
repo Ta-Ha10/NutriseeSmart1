@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import '../../services/firestore_service.dart';
 import '../../utils/user_data.dart';
-import 'success_screen.dart';
 
 class LoadingScreen extends StatefulWidget {
   final UserData userData;
@@ -74,7 +72,7 @@ class _LoadingScreenState extends State<LoadingScreen>
           ),
         );
 
-    _performCalculationAndSave();
+    _performCalculation();
   }
 
   @override
@@ -85,29 +83,13 @@ class _LoadingScreenState extends State<LoadingScreen>
     super.dispose();
   }
 
-  Future<void> _performCalculationAndSave() async {
+  Future<void> _performCalculation() async {
     widget.userData.calculateMetrics();
-
-    try {
-      await FirestoreService.saveUserData(widget.userData);
-    } catch (error) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not complete signup: $error')),
-      );
-      Navigator.pushReplacementNamed(context, '/auth_method');
-      return;
-    }
 
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
-    widget.userData.clearSignupState();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const SuccessScreen()),
-    );
+    Navigator.pushReplacementNamed(context, '/success');
   }
 
   @override

@@ -11,6 +11,10 @@ class FirestoreService {
       throw Exception('No authenticated user found when saving user data.');
     }
 
+    if (!data.hasProfileData) {
+      return;
+    }
+
     data.calculateMetrics();
 
     final docData = data.toFirestoreMap();
@@ -69,15 +73,5 @@ class FirestoreService {
   static Future<Map<String, dynamic>?> getUserData(String uid) async {
     final doc = await _firestore.collection('users').doc(uid).get();
     return doc.data();
-  }
-
-  static Future<bool> emailAlreadyRegistered(String email) async {
-    final snapshot = await _firestore
-        .collection('users')
-        .where('personalData.email', isEqualTo: email)
-        .limit(1)
-        .get();
-
-    return snapshot.docs.isNotEmpty;
   }
 }

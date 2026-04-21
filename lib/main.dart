@@ -77,7 +77,7 @@ class MyApp extends StatelessWidget {
         '/loading': (context) => LoadingScreen(userData: signupData),
         '/review': (context) => const ReviewScreen(),
         '/auth_method': (context) => const AuthMethodScreen(),
-        '/success': (context) => const SuccessScreen(),
+        '/success': (context) => SuccessScreen(userData: signupData),
         '/home': (context) => const HomeScreen(),
         '/breakfast_time': (context) => const BreakfastTimeScreen(),
         '/lunch_time': (context) => const LunchTimeScreen(),
@@ -113,7 +113,7 @@ class MyApp extends StatelessWidget {
       case '/auth_method':
         return const AuthMethodScreen();
       case '/success':
-        return const SuccessScreen();
+        return SuccessScreen(userData: signupData);
       case '/home':
         return const HomeScreen();
       case '/breakfast_time':

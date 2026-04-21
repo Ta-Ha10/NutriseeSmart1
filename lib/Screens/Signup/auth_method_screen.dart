@@ -114,19 +114,6 @@ class _AuthMethodScreenState extends State<AuthMethodScreen> {
         return;
       }
 
-      final emailAlreadyRegistered = await FirestoreService
-          .emailAlreadyRegistered(googleUser.email);
-      if (emailAlreadyRegistered) {
-        await googleSignIn.signOut();
-        if (mounted) {
-          _showErrorDialog(
-            context,
-            'This Google email is already registered. Please log in instead.',
-          );
-        }
-        return;
-      }
-
       final googleAuth = await googleUser.authentication;
       if (googleAuth.idToken == null || googleAuth.accessToken == null) {
         if (!mounted) return;
@@ -142,8 +129,24 @@ class _AuthMethodScreenState extends State<AuthMethodScreen> {
         idToken: googleAuth.idToken,
       );
 
-      await FirebaseAuth.instance.signInWithCredential(credential);
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
       if (!mounted) return;
+
+      final existingUserData = await FirestoreService.getUserData(
+        userCredential.user!.uid,
+      );
+      if (existingUserData != null && existingUserData.isNotEmpty) {
+        await FirebaseAuth.instance.signOut();
+        await googleSignIn.signOut();
+        if (!mounted) return;
+        _showErrorDialog(
+          context,
+          'This Google email is already registered. Please log in instead.',
+        );
+        return;
+      }
 
       signupData.email =
           FirebaseAuth.instance.currentUser?.email ?? googleUser.email;
@@ -158,6 +161,7 @@ class _AuthMethodScreenState extends State<AuthMethodScreen> {
           googleUser.displayName!.isNotEmpty) {
         signupData.name = googleUser.displayName!;
       }
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/loading');
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;

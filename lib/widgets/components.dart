@@ -2,24 +2,62 @@ import 'package:flutter/material.dart';
 
 class MacroCard extends StatelessWidget {
   final String title;
-  const MacroCard({super.key, required this.title});
+  final String amountLabel;
+  final double progress;
+  final Color accentColor;
+
+  const MacroCard({
+    super.key,
+    required this.title,
+    this.amountLabel = '0g',
+    this.progress = 0,
+    this.accentColor = Colors.green,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 100,
-      padding: const EdgeInsets.all(12),
+      width: 92,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x16000000),
+            blurRadius: 12,
+            offset: Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          const LinearProgressIndicator(value: 0),
-          const SizedBox(height: 4),
-          const Text('0/263g', style: TextStyle(fontSize: 12)),
+          Container(
+            width: 46,
+            height: 6,
+            decoration: BoxDecoration(
+              color: accentColor,
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 15,
+              color: Color(0xFF424242),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            amountLabel,
+            style: const TextStyle(
+              fontSize: 11,
+              color: Color(0xFF7A7A7A),
+            ),
+          ),
         ],
       ),
     );

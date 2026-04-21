@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../Screens/Signup/meals_screen.dart';
 import '../services/firestore_service.dart';
-import '../utils/user_data.dart';
 import '../widgets/components.dart';
 import 'workout_screen.dart'; // added import
 
@@ -15,31 +14,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late final Future<Map<String, dynamic>?> _userDataFuture;
+
   @override
   void initState() {
     super.initState();
-    _saveSignupDataIfNeeded();
+    _userDataFuture = _loadUserData();
   }
 
-  Future<void> _saveSignupDataIfNeeded() async {
+  Future<Map<String, dynamic>?> _loadUserData() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null && signupData.name != null) {
-      // Check if user data already exists
-      final existingData = await FirestoreService.getUserData(user.uid);
-      if (existingData == null || existingData.isEmpty) {
-        // Save signup data since it doesn't exist
-        try {
-          await FirestoreService.saveUserData(signupData);
-          signupData.clearSignupState();
-          print('User data saved to Firebase successfully');
-        } catch (error) {
-          // Handle error if needed
-          print('Error saving user data: $error');
-        }
-      } else {
-        signupData.clearSignupState();
-      }
+    if (user == null) {
+      return null;
     }
+    return FirestoreService.getUserData(user.uid);
   }
 
   @override
@@ -47,63 +35,100 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xffF2EDE9),
       bottomNavigationBar: const AppBottomNav(),
-      body: const SafeArea(
-        child: Padding(padding: EdgeInsets.all(16), child: HomeBody()),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: FutureBuilder<Map<String, dynamic>?>(
+            future: _userDataFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.green),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return const Center(
+                  child: Text('Could not load your profile data.'),
+                );
+              }
+
+              return HomeBody(userData: snapshot.data);
+            },
+          ),
+        ),
       ),
     );
   }
 }
 
 class HomeBody extends StatelessWidget {
-  const HomeBody({super.key});
+  final Map<String, dynamic>? userData;
+
+  const HomeBody({super.key, this.userData});
 
   @override
   Widget build(BuildContext context) {
+    final personalData = _readMap(userData, 'personalData');
+    final dietPlan = _readMap(userData, 'dietPlan');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        HomeHeader(),
-        SizedBox(height: 20),
-        CalorieCard(),
-        SizedBox(height: 16),
-        MacrosRow(),
-        SizedBox(height: 20),
-        ActionButtons(),
-        SizedBox(height: 20),
-        WeeklyIntake(),
+      children: [
+        HomeHeader(name: _readString(personalData, 'name') ?? 'Athlete'),
+        const SizedBox(height: 20),
+        NutritionOverview(
+          targetCalories: _readNum(dietPlan, 'targetCalories')?.toDouble(),
+          carbs: _readNum(dietPlan, 'carbGrams')?.toDouble(),
+          protein: _readNum(dietPlan, 'proteinGrams')?.toDouble(),
+          fats: _readNum(dietPlan, 'fatGrams')?.toDouble(),
+        ),
+        const SizedBox(height: 20),
+        const ActionButtons(),
+        const SizedBox(height: 20),
+        const WeeklyIntake(),
       ],
     );
   }
 }
 
 class HomeHeader extends StatelessWidget {
-  const HomeHeader({super.key});
+  final String name;
+
+  const HomeHeader({super.key, required this.name});
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Row(
-          children: const [
-            CircleAvatar(
-              radius: 22,
-              backgroundImage: AssetImage('assets/Photoes/Profile Photo.png'),
-            ),
-            SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Good Morning,', style: TextStyle(color: Colors.green)),
-                Text(
-                  'Alex Johnson',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ],
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircleAvatar(
+                radius: 22,
+                backgroundImage: AssetImage('assets/Photoes/Profile Photo.png'),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Good Morning,',
+                    style: TextStyle(color: Colors.green),
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    name,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-
         const Icon(Icons.notifications_none),
       ],
     );
@@ -111,27 +136,58 @@ class HomeHeader extends StatelessWidget {
 }
 
 class CalorieCard extends StatelessWidget {
-  const CalorieCard({super.key});
+  final double? targetCalories;
+
+  const CalorieCard({super.key, this.targetCalories});
 
   @override
   Widget build(BuildContext context) {
+    final goalCalories = (targetCalories ?? 0).round();
     return Container(
-      padding: const EdgeInsets.all(24),
+      width: 200,
+      height: 200,
       decoration: BoxDecoration(
+        shape: BoxShape.circle,
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFF16A34A), width: 2.2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 16,
+            offset: Offset(0, 8),
+          ),
+        ],
       ),
-      child: const Center(
+      child: Center(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text('REMAINING', style: TextStyle(color: Colors.grey)),
-            SizedBox(height: 8),
-            Text(
-              '1,250',
-              style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+            const Text(
+              'REMAINING',
+              style: TextStyle(
+                color: Color(0xFF616161),
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            SizedBox(height: 4),
-            Text('GOAL 2,500'),
+            const SizedBox(height: 6),
+            Text(
+              goalCalories > 0 ? '$goalCalories' : '--',
+              style: const TextStyle(
+                fontSize: 34,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'GOAL ${goalCalories > 0 ? _formatCalories(goalCalories) : '--'}',
+              style: const TextStyle(
+                color: Color(0xFF7A7A7A),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
@@ -139,17 +195,67 @@ class CalorieCard extends StatelessWidget {
   }
 }
 
-class MacrosRow extends StatelessWidget {
-  const MacrosRow({super.key});
+class NutritionOverview extends StatelessWidget {
+  final double? targetCalories;
+  final double? carbs;
+  final double? protein;
+  final double? fats;
+
+  const NutritionOverview({
+    super.key,
+    this.targetCalories,
+    this.carbs,
+    this.protein,
+    this.fats,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(18, 22, 18, 28),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(26),
+      ),
+      child: Column(
+        children: [
+          CalorieCard(targetCalories: targetCalories),
+          const SizedBox(height: 30),
+          MacrosRow(carbs: carbs, protein: protein, fats: fats),
+        ],
+      ),
+    );
+  }
+}
+
+class MacrosRow extends StatelessWidget {
+  final double? carbs;
+  final double? protein;
+  final double? fats;
+
+  const MacrosRow({super.key, this.carbs, this.protein, this.fats});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        MacroCard(title: 'Carbs'),
-        MacroCard(title: 'Protein'),
-        MacroCard(title: 'Fats'),
+        MacroCard(
+          title: 'Carbs',
+          amountLabel: _macroLabel(carbs),
+          accentColor: const Color(0xFF3B82F6),
+        ),
+        MacroCard(
+          title: 'Protein',
+          amountLabel: _macroLabel(protein),
+          accentColor: const Color(0xFF16A34A),
+        ),
+        MacroCard(
+          title: 'Fats',
+          amountLabel: _macroLabel(fats),
+          accentColor: const Color(0xFFEAB308),
+        ),
       ],
     );
   }
@@ -199,6 +305,9 @@ class WeeklyIntake extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const weeklyValues = [0.18, 0.32, 0.28, 0.52, 0.46, 0.68, 0.61];
+    const weekLabels = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,9 +325,63 @@ class WeeklyIntake extends StatelessWidget {
           const SizedBox(height: 12),
           Expanded(
             child: Container(
+              padding: const EdgeInsets.fromLTRB(14, 18, 14, 10),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.green),
+                color: Colors.white,
+              ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: List.generate(weeklyValues.length, (index) {
+                        final isHighlighted = weekLabels[index] == 'Sa';
+                        return Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Expanded(
+                                  child: Align(
+                                    alignment: Alignment.bottomCenter,
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 600),
+                                      curve: Curves.easeOutCubic,
+                                      width: 18,
+                                      height: 180 * weeklyValues[index],
+                                      decoration: BoxDecoration(
+                                        color: isHighlighted
+                                            ? const Color(0xFF4CAF50)
+                                            : const Color(0xFFBFE8C3),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  weekLabels[index],
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: isHighlighted
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: isHighlighted
+                                        ? const Color(0xFF4CAF50)
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -233,17 +396,178 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: 2,
-      selectedItemColor: Colors.green,
-      unselectedItemColor: Colors.grey,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.receipt), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.settings), label: ''),
-      ],
+    return SafeArea(
+      minimum: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+      child: SizedBox(
+        height: 82,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.bottomCenter,
+          children: [
+            Container(
+              height: 54,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x22000000),
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  _NavItem(
+                    icon: Icons.cottage_outlined,
+                    color: const Color(0xFF76C98A),
+                    onTap: () {},
+                  ),
+                  const _NavDivider(),
+                  _NavItem(
+                    icon: Icons.book_outlined,
+                    color: const Color(0xFFD9D9D9),
+                    onTap: () {},
+                  ),
+                  const _NavSpacer(),
+                  const _NavDivider(),
+                  _NavItem(
+                    icon: Icons.query_stats_outlined,
+                    color: const Color(0xFFD9D9D9),
+                    onTap: () {},
+                  ),
+                  const _NavDivider(),
+                  _NavItem(
+                    icon: Icons.settings_suggest_outlined,
+                    color: const Color(0xFFD9D9D9),
+                    onTap: () {},
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              top: 0,
+              child: GestureDetector(
+                onTap: () {},
+                child: Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: Color(0xFF49B44E),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 4),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x22000000),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.restaurant_menu_rounded,
+                    color: Colors.white,
+                    size: 42,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Center(
+          child: Icon(icon, color: color, size: 30),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavDivider extends StatelessWidget {
+  const _NavDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 54,
+      color: const Color(0xFFEAEAEA),
+    );
+  }
+}
+
+class _NavSpacer extends StatelessWidget {
+  const _NavSpacer();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(width: 70);
+  }
+}
+
+Map<String, dynamic>? _readMap(Map<String, dynamic>? source, String key) {
+  final value = source?[key];
+  if (value is Map<String, dynamic>) {
+    return value;
+  }
+  if (value is Map) {
+    return value.map(
+      (mapKey, mapValue) => MapEntry(mapKey.toString(), mapValue),
+    );
+  }
+  return null;
+}
+
+String? _readString(Map<String, dynamic>? source, String key) {
+  final value = source?[key];
+  return value is String && value.trim().isNotEmpty ? value : null;
+}
+
+num? _readNum(Map<String, dynamic>? source, String key) {
+  final value = source?[key];
+  return value is num ? value : null;
+}
+
+String _macroLabel(double? grams) {
+  final rounded = grams?.round() ?? 0;
+  return '0/${rounded > 0 ? rounded : '--'}g';
+}
+
+String _formatCalories(int value) {
+  final text = value.toString();
+  if (text.length <= 3) {
+    return text;
+  }
+
+  final buffer = StringBuffer();
+  for (var i = 0; i < text.length; i++) {
+    buffer.write(text[i]);
+    final remaining = text.length - i - 1;
+    if (remaining > 0 && remaining % 3 == 0) {
+      buffer.write(',');
+    }
+  }
+  return buffer.toString();
 }
