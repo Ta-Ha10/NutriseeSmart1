@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import '../../utils/auto_dismiss_dialog.dart';
 import '../../utils/page_transitions.dart';
 import '../../utils/widgets.dart';
 import '../../widgets/wheel_time_picker.dart';
@@ -14,6 +15,25 @@ class LunchTimeScreen extends StatefulWidget {
 
 class _LunchTimeScreenState extends State<LunchTimeScreen> {
   TimeOfDay selectedTime = TimeOfDay(hour: 13, minute: 00);
+
+  void _showExplanationDialog(BuildContext context, String questionType) {
+    String title = "";
+    String explanation = "";
+
+    switch (questionType) {
+      case "lunch_time":
+        title = "Why do we ask about lunch time?";
+        explanation = "Understanding your lunch schedule allows us to plan balanced meals that fit your workday or daily routine, ensuring you get the right nutrients at the right time.";
+        break;
+    }
+
+    showAutoDismissDialog(
+      context,
+      title: title,
+      message: explanation,
+      dismissDuration: const Duration(seconds: 5),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,30 +67,33 @@ class _LunchTimeScreenState extends State<LunchTimeScreen> {
               ),
               Gap(20),
               // Header with styled text
-              RichText(
-                text: const TextSpan(
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+              Center(
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: const TextSpan(
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    children: [
+                      TextSpan(text: "When do you have\nyour "),
+                      TextSpan(
+                        text: "lunch",
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextSpan(
+                        text: "?",
+                        style: TextStyle(
+                          color: Color(0xff13EC5B),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                  children: [
-                    TextSpan(text: "When do you have\nyour "),
-                    TextSpan(
-                      text: "lunch",
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextSpan(
-                      text: "?",
-                      style: TextStyle(
-                        color: Color(0xff13EC5B),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
                 ),
               ),
               const SizedBox(height: 16),
@@ -186,68 +209,6 @@ class _LunchTimeScreenState extends State<LunchTimeScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  void _showExplanationDialog(BuildContext context, String screenType) {
-    String title;
-    String explanation;
-
-    switch (screenType) {
-      case "lunch_time":
-        title = "Why do we ask for your lunch time?";
-        explanation =
-            "Knowing your typical lunch time helps us create meal plans that align with your daily routine. This ensures your nutrition fits naturally into your schedule without disrupting your day.";
-        break;
-      default:
-        title = "Information";
-        explanation = "This information helps us personalize your experience.";
-    }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          content: Text(
-            explanation,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.black87,
-              height: 1.5,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(
-                backgroundColor: const Color(0xff13EC5B),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'Got it',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 }

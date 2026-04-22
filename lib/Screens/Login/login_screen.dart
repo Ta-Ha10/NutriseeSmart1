@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import '../Signup/name_input_screen.dart';
+import '../Signup/intro_carousel_screen.dart';
 import 'reset_password_email.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -308,7 +308,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const NameInputScreen(),
+                                builder: (_) => const IntroCarouselScreen(),
                               ),
                             );
                           },

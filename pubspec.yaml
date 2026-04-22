@@ -76,6 +76,7 @@ flutter:
     - assets/S_logo.png
     - assets/logo.png
     - assets/Photoes/
+    - assets/intro photes/
     - assets/unique_ingredients.txt
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -48,25 +48,37 @@ class _NameInputScreenState extends State<NameInputScreen> {
       body: SignupStepBody(
         activeIndex: 0,
         centerTitle: true,
-        title: Text(
-          'Welcome to NutriSeseSmart',
-          style: GoogleFonts.inter(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
+        title: Center(
+          child: RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: 'Enter your ',
+                  style: GoogleFonts.inter(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                TextSpan(
+                  text: 'name ?',
+                  style: GoogleFonts.inter(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xff13EC5B),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         content: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.person_add, size: 60, color: Colors.green),
+            CircleAvatar(
+              radius: 60,
+              backgroundImage: const AssetImage('assets/Photoes/Profile Photo.png'),
             ),
             const Gap(28),
             Text(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import '../../utils/auto_dismiss_dialog.dart';
 import '../../utils/page_transitions.dart';
 import '../../utils/widgets.dart';
 import '../../widgets/wheel_time_picker.dart';
@@ -26,50 +27,11 @@ class _BreakfastTimeScreenState extends State<BreakfastTimeScreen> {
         break;
     }
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          content: Text(
-            explanation,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.black87,
-              height: 1.5,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(
-                backgroundColor: const Color(0xff13EC5B),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'Got it',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+    showAutoDismissDialog(
+      context,
+      title: title,
+      message: explanation,
+      dismissDuration: const Duration(seconds: 5),
     );
   }
 
@@ -105,30 +67,33 @@ class _BreakfastTimeScreenState extends State<BreakfastTimeScreen> {
               ),
               Gap(20),
               // Header with styled text
-              RichText(
-                text: const TextSpan(
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+              Center(
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: const TextSpan(
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    children: [
+                      TextSpan(text: "When do you have\nyour "),
+                      TextSpan(
+                        text: "breakfast",
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      TextSpan(
+                        text: "?",
+                        style: TextStyle(
+                          color: Color(0xff13EC5B),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                  children: [
-                    TextSpan(text: "When do you have\nyour "),
-                    TextSpan(
-                      text: "breakfast",
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextSpan(
-                      text: "?",
-                      style: TextStyle(
-                        color: Color(0xff13EC5B),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
                 ),
               ),
               const SizedBox(height: 16),

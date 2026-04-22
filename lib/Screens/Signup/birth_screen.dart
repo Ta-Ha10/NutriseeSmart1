@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
+import '../../utils/auto_dismiss_dialog.dart';
 import '../../utils/page_transitions.dart';
 import '../../utils/user_data.dart';
 import '../../utils/widgets.dart';
@@ -37,33 +38,11 @@ class _BirthScreenState extends State<BirthScreen> {
         break;
     }
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Text(
-            title,
-            style: const TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Text(
-            explanation,
-            style: const TextStyle(color: Colors.black87),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                "Got it",
-                style: TextStyle(color: Color(0xff13EC5B)),
-              ),
-            ),
-          ],
-        );
-      },
+    showAutoDismissDialog(
+      context,
+      title: title,
+      message: explanation,
+      dismissDuration: const Duration(seconds: 5),
     );
   }
 

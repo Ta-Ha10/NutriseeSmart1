@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/auto_dismiss_dialog.dart';
 import '../../utils/page_transitions.dart';
 import '../../utils/widgets.dart';
 import '../../utils/user_data.dart';
@@ -13,6 +14,25 @@ class WorkoutFrequencyScreen extends StatefulWidget {
 class _WorkoutFrequencyScreenState extends State<WorkoutFrequencyScreen> {
   final List<String> days = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
   final Set<int> selectedDays = {};
+
+  void _showExplanationDialog(BuildContext context, String questionType) {
+    String title = "";
+    String explanation = "";
+
+    switch (questionType) {
+      case "workout_frequency":
+        title = "Why do we ask about workout frequency?";
+        explanation = "Knowing your exercise habits helps us design meal plans that support your activity level and recovery needs. This ensures you get the right nutrients to fuel your workouts and optimize performance.";
+        break;
+    }
+
+    showAutoDismissDialog(
+      context,
+      title: title,
+      message: explanation,
+      dismissDuration: const Duration(seconds: 5),
+    );
+  }
 
   Widget _dayButton(int index) {
     bool isSelected = selectedDays.contains(index);
@@ -56,26 +76,52 @@ class _WorkoutFrequencyScreenState extends State<WorkoutFrequencyScreen> {
       body: SafeArea(
         child: SignupStepBody(
           activeIndex: 8,
-          title: RichText(
-            textAlign: TextAlign.center,
-            text: const TextSpan(
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-              children: [
-                TextSpan(text: "When do you "),
-                TextSpan(
-                  text: "workout",
+          title: Column(
+            children: [
+              RichText(
+                textAlign: TextAlign.center,
+                text: const TextSpan(
                   style: TextStyle(
-                    color: Colors.green,
+                    fontSize: 26,
                     fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
+                  children: [
+                    TextSpan(text: "When do you "),
+                    TextSpan(
+                      text: "workout",
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(text: "?"),
+                  ],
                 ),
-                TextSpan(text: "?"),
-              ],
-            ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Behind the question",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => _showExplanationDialog(context, "workout_frequency"),
+                    child: Icon(
+                      Icons.help_outline,
+                      size: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
           content: Column(
             children: [

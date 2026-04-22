@@ -74,126 +74,154 @@ class _ReviewScreenState extends State<ReviewScreen> {
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 32),
-            // Scrollable content
+            // Scrollable content - Grid Layout
             Expanded(
               child: ListView(
                 children: [
                   _buildSectionHeader("Personal Info"),
                   const SizedBox(height: 16),
-                  _buildEditableItem(
-                    Icons.person_outline,
-                    "Name",
-                    signupData.name ?? 'Not set',
-                    () => _showEditNameDialog(),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.9,
+                    children: [
+                      _buildGridEditableItem(
+                        Icons.person_outline,
+                        "Name",
+                        signupData.name ?? 'Not set',
+                        () => _showEditNameDialog(),
+                      ),
+                      _buildGridEditableItem(
+                        Icons.cake,
+                        "Birth Date",
+                        signupData.birthDay != null
+                            ? '${signupData.birthDay.toString().padLeft(2, '0')}/${signupData.birthMonth.toString().padLeft(2, '0')}/${signupData.birthYear}'
+                            : 'Not set',
+                        () => _showEditBirthDateDialog(),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  _buildEditableItem(
-                    Icons.cake,
-                    "Birth Date",
-                    signupData.birthDay != null
-                        ? '${signupData.birthDay.toString().padLeft(2, '0')}/${signupData.birthMonth.toString().padLeft(2, '0')}/${signupData.birthYear}'
-                        : 'Not set',
-                    () => _showEditBirthDateDialog(),
-                  ),
-
                   const SizedBox(height: 32),
                   // Body Metrics Section
                   _buildSectionHeader("Body Metrics"),
                   const SizedBox(height: 16),
-                  _buildEditableItem(
-                    Icons.wc,
-                    "Gender",
-                    signupData.gender?.toUpperCase() ?? 'Not set',
-                    () => _showEditGenderDialog(),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.9,
+                    children: [
+                      _buildGridEditableItem(
+                        Icons.wc,
+                        "Gender",
+                        signupData.gender?.toUpperCase() ?? 'Not set',
+                        () => _showEditGenderDialog(),
+                      ),
+                      _buildGridEditableItem(
+                        Icons.height,
+                        "Height",
+                        signupData.heightCm != null
+                            ? '${signupData.heightCm!.toStringAsFixed(0)} cm'
+                            : 'Not set',
+                        () => _showEditHeightDialog(),
+                      ),
+                      _buildGridEditableItem(
+                        Icons.fitness_center,
+                        "Current Weight",
+                        signupData.currentWeight != null
+                            ? '${signupData.currentWeight!.toStringAsFixed(1)} kg'
+                            : 'Not set',
+                        () => _showEditCurrentWeightDialog(),
+                      ),
+                      _buildGridEditableItem(
+                        Icons.fitness_center,
+                        "Goal Weight",
+                        signupData.goalWeight != null
+                            ? '${signupData.goalWeight!.toStringAsFixed(1)} kg'
+                            : 'Not set',
+                        () => _showEditGoalWeightDialog(),
+                      ),
+                      _buildGridEditableItem(
+                        Icons.health_and_safety,
+                        "Diabetes",
+                        signupData.hasObesity == null
+                            ? 'Not set'
+                            : (signupData.hasObesity! ? 'Yes' : 'No'),
+                        () => _showEditDiabetesDialog(),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  _buildEditableItem(
-                    Icons.height,
-                    "Height",
-                    signupData.heightCm != null
-                        ? '${signupData.heightCm!.toStringAsFixed(0)} cm'
-                        : 'Not set',
-                    () => _showEditHeightDialog(),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildEditableItem(
-                    Icons.fitness_center,
-                    "Current Weight",
-                    signupData.currentWeight != null
-                        ? '${signupData.currentWeight!.toStringAsFixed(1)} kg'
-                        : 'Not set',
-                    () => _showEditCurrentWeightDialog(),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildEditableItem(
-                    Icons.fitness_center,
-                    "Goal Weight",
-                    signupData.goalWeight != null
-                        ? '${signupData.goalWeight!.toStringAsFixed(1)} kg'
-                        : 'Not set',
-                    () => _showEditGoalWeightDialog(),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildEditableItem(
-                    Icons.health_and_safety,
-                    "Diabetes",
-                    signupData.hasObesity == null
-                        ? 'Not set'
-                        : (signupData.hasObesity! ? 'Yes' : 'No'),
-                    () => _showEditDiabetesDialog(),
-                  ),
-
                   const SizedBox(height: 32),
                   // Activity & Goals Section
                   _buildSectionHeader("Activity & Goals"),
                   const SizedBox(height: 16),
-                  _buildEditableItem(
-                    Icons.directions_run,
-                    "Activity Level",
-                    signupData.activityLabel ?? 'Not set',
-                    () => _showEditActivityLevelDialog(),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.9,
+                    children: [
+                      _buildGridEditableItem(
+                        Icons.directions_run,
+                        "Activity Level",
+                        signupData.activityLabel ?? 'Not set',
+                        () => _showEditActivityLevelDialog(),
+                      ),
+                      _buildGridEditableItem(
+                        Icons.restaurant_menu,
+                        "Meal Goal",
+                        signupData.mealGoalLabel ?? 'Not set',
+                        () => _showEditMealGoalDialog(),
+                      ),
+                      _buildGridEditableItem(
+                        Icons.fitness_center,
+                        "Workout Days",
+                        signupData.workoutDays?.isNotEmpty ?? false
+                            ? signupData.workoutDays!.join(', ')
+                            : 'Not set',
+                        () => _showEditWorkoutDaysDialog(),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  _buildEditableItem(
-                    Icons.restaurant_menu,
-                    "Meal Goal",
-                    signupData.mealGoalLabel ?? 'Not set',
-                    () => _showEditMealGoalDialog(),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildEditableItem(
-                    Icons.fitness_center,
-                    "Workout Days",
-                    signupData.workoutDays?.isNotEmpty ?? false
-                        ? signupData.workoutDays!.join(', ')
-                        : 'Not set',
-                    () => _showEditWorkoutDaysDialog(),
-                  ),
-
                   const SizedBox(height: 32),
                   // Nutrition Section
                   _buildSectionHeader("Calculated Metrics"),
                   const SizedBox(height: 16),
-                  _buildDisplayItem(
-                    Icons.calendar_today,
-                    "Age",
-                    signupData.age > 0 ? signupData.age.toString() : 'N/A',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildDisplayItem(
-                    Icons.monitor_weight,
-                    "BMI",
-                    signupData.bmi != null
-                        ? '${signupData.bmi!.toStringAsFixed(1)} (${signupData.bmiCategory})'
-                        : 'N/A',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildDisplayItem(
-                    Icons.restaurant_menu,
-                    "Target Calories",
-                    signupData.targetCalories != null
-                        ? '${signupData.targetCalories!.toStringAsFixed(0)} kcal'
-                        : 'N/A',
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.9,
+                    children: [
+                      _buildGridDisplayItem(
+                        Icons.calendar_today,
+                        "Age",
+                        signupData.age > 0 ? signupData.age.toString() : 'N/A',
+                      ),
+                      _buildGridDisplayItem(
+                        Icons.monitor_weight,
+                        "BMI",
+                        signupData.bmi != null
+                            ? '${signupData.bmi!.toStringAsFixed(1)} (${signupData.bmiCategory})'
+                            : 'N/A',
+                      ),
+                      _buildGridDisplayItem(
+                        Icons.restaurant_menu,
+                        "Target Calories",
+                        signupData.targetCalories != null
+                            ? '${signupData.targetCalories!.toStringAsFixed(0)} kcal'
+                            : 'N/A',
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 48),
                 ],
@@ -314,6 +342,107 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Grid-based widgets
+  Widget _buildGridEditableItem(
+    IconData icon,
+    String label,
+    String value,
+    VoidCallback onEdit,
+  ) {
+    return GestureDetector(
+      onTap: onEdit,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(icon, color: const Color(0xff13EC5B), size: 36),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 8),
+            Icon(Icons.edit, color: const Color(0xff13EC5B), size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGridDisplayItem(IconData icon, String label, String value) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: const Color(0xff13EC5B), size: 36),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
