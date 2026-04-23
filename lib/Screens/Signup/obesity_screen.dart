@@ -84,7 +84,8 @@ class _ObesityScreenState extends State<ObesityScreen> {
               Gap(150), // Image
               Image.asset(
                 'assets/Photoes/diabetes.png',
-                height: 250,
+                height: 150,
+
                 fit: BoxFit.contain,
               ),
               const SizedBox(height: 40),
@@ -139,8 +140,8 @@ class _ObesityScreenState extends State<ObesityScreen> {
     return GestureDetector(
       onTap: () => setState(() => hasObesity = value),
       child: Container(
-        width: 80,
-        height: 80,
+        width: 70,
+        height: 70,
         decoration: BoxDecoration(
           color: isSelected ? Colors.green : Colors.grey[600],
           shape: BoxShape.circle,

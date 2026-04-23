@@ -73,54 +73,52 @@ class _NameInputScreenState extends State<NameInputScreen> {
             ),
           ),
         ),
-        content: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 60,
-              backgroundImage: const AssetImage('assets/Photoes/Profile Photo.png'),
+        content: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height * 0.7,
             ),
-            const Gap(28),
-            Text(
-              'Let\'s start by knowing your name',
-              style: GoogleFonts.inter(fontSize: 16, color: Colors.black54),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(40),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  hintText: 'Enter your name',
-                  hintStyle: GoogleFonts.inter(color: Colors.black38),
-                  prefixIcon: const Icon(Icons.person, color: Colors.green),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 18,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 50,
+                  backgroundImage: const AssetImage('assets/Photoes/Profile Photo.png'),
+                ),
+                const Gap(20),
+                Text(
+                  'Let\'s start by knowing your name',
+                  style: GoogleFonts.inter(fontSize: 14, color: Colors.black54),
+                  textAlign: TextAlign.center,
+                ),
+                const Gap(30),
+                SizedBox(
+                  width: 280,
+                  child: TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter your name',
+                      hintStyle: GoogleFonts.inter(color: Colors.black38),
+                      prefixIcon: const Icon(Icons.person, color: Colors.green),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                    ),
+                    style: GoogleFonts.inter(fontSize: 16, color: Colors.black87),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-                style: GoogleFonts.inter(fontSize: 16, color: Colors.black87),
-                textAlign: TextAlign.center,
-              ),
+              ],
             ),
-          ],
+          ),
         ),
         bottomAction: _isNameValid
             ? NextButton(
