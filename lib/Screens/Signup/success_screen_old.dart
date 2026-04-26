@@ -25,25 +25,8 @@ class _SuccessScreenState extends State<SuccessScreen> {
 
   Future<void> _finishSignup() async {
     try {
-      // Log data before calculation
-      print('DEBUG: Before calculateMetrics()');
-      print('  name: ${widget.userData.name}');
-      print('  currentWeight: ${widget.userData.currentWeight}');
-      print('  goalWeight: ${widget.userData.goalWeight}');
-      print('  gender: ${widget.userData.gender}');
-      print('  heightCm: ${widget.userData.heightCm}');
-      print('  activityLevel: ${widget.userData.activityLevel}');
-      
       // Calculate metrics before saving
       widget.userData.calculateMetrics();
-      
-      // Log data after calculation
-      print('DEBUG: After calculateMetrics()');
-      print('  carbGrams: ${widget.userData.carbGrams}');
-      print('  proteinGrams: ${widget.userData.proteinGrams}');
-      print('  fatGrams: ${widget.userData.fatGrams}');
-      print('  targetCalories: ${widget.userData.targetCalories}');
-      
       await FirestoreService.saveUserData(widget.userData);
     } catch (error) {
       if (!mounted) return;
@@ -54,6 +37,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
       return;
     }
 
+    widget.userData.clearSignupState();
     if (!mounted) return;
     setState(() {
       _isSaving = false;
@@ -131,79 +115,78 @@ class _SuccessScreenState extends State<SuccessScreen> {
     final goalDate = DateTime.now().add(const Duration(days: 180));
     final monthsAway = goalDate.month;
     final yearAway = goalDate.year;
+    final weightDifference = (userData.currentWeight ?? 0) - (userData.goalWeight ?? 0);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFBFC),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Background Image Header
-            Stack(
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: 280,
-                  decoration: BoxDecoration(
-                    image: const DecorationImage(
-                      image: AssetImage('assets/Photoes/background.png'),
-                      fit: BoxFit.cover,
+            // Green Header Banner
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: Color(0xff13EC5B),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
+                ),
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: -80,
+                    top: -50,
+                    child: Container(
+                      width: 300,
+                      height: 300,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  width: double.infinity,
-                  height: 280,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.3),
-                        Colors.black.withOpacity(0.5),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 40, 24, 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Congratulations!',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: userData.name ?? 'User',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const TextSpan(
+                                text: ', we crafted a health plan from your answers',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 80, 24, 32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Congratulations!',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: userData.name ?? 'User',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const TextSpan(
-                              text: ', we crafted a health plan from your answers',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
 
             Padding(
@@ -253,7 +236,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                '${(userData.currentWeight ?? 0).toStringAsFixed(0)} kg',
+                                '${userData.currentWeight?.toStringAsFixed(0)} kg',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
@@ -268,7 +251,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                '${(userData.goalWeight ?? 0).toStringAsFixed(0)} kg',
+                                '${userData.goalWeight?.toStringAsFixed(0)} kg',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
@@ -327,7 +310,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                       children: [
                         _buildGoalPoint('Lose weight than focus on maintaining your progress'),
                         const SizedBox(height: 12),
-                        _buildGoalPoint('Reach your goal weight ${(userData.goalWeight ?? 0).toStringAsFixed(0)} kg by Feb $monthsAway, $yearAway'),
+                        _buildGoalPoint('Reach your goal weight 70 kg by Feb $monthsAway, $yearAway'),
                         const SizedBox(height: 12),
                         _buildGoalPoint('Create lifelong habits to sustain your success'),
                         const SizedBox(height: 12),
@@ -352,10 +335,10 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildNutrientCircle('🔥', 'Carbs', '${(userData.carbGrams ?? 0).toStringAsFixed(0)}g'),
-                      _buildNutrientCircle('🥚', 'Proteins', '${(userData.proteinGrams ?? 0).toStringAsFixed(0)}g'),
-                      _buildNutrientCircle('🧈', 'Fats', '${(userData.fatGrams ?? 0).toStringAsFixed(0)}g'),
-                      _buildNutrientCircle('📊', 'Calories', '${(userData.targetCalories ?? 0).toStringAsFixed(0)}'),
+                      _buildNutrientCircle('🔥', 'Carbs', '${userData.carbGrams?.toStringAsFixed(0) ?? '0'}g'),
+                      _buildNutrientCircle('🥚', 'Proteins', '${userData.proteinGrams?.toStringAsFixed(0) ?? '0'}g'),
+                      _buildNutrientCircle('🧈', 'Fats', '${userData.fatGrams?.toStringAsFixed(0) ?? '0'}g'),
+                      _buildNutrientCircle('📊', 'Calories', '${userData.targetCalories?.toStringAsFixed(0) ?? '0'}'),
                     ],
                   ),
 
@@ -372,27 +355,44 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // All 3 photos in one row, smaller
                   Row(
                     children: [
                       Expanded(
-                        child: _buildOptimizedCardSmall(
+                        child: _buildOptimizedCard(
                           'Health Life',
                           'assets/Photoes/health life.png',
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: _buildOptimizedCardSmall(
+                        child: _buildOptimizedCard(
                           'Water Reminder',
                           'assets/Photoes/water reminder.png',
                         ),
                       ),
-                      const SizedBox(width: 12),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
                       Expanded(
-                        child: _buildOptimizedCardSmall(
+                        child: _buildOptimizedCard(
                           'Balanced Food',
                           'assets/Photoes/balanced food.png',
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(
+                          height: 140,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: const Color(0xFFF0F0F0),
+                              width: 1.5,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -404,7 +404,6 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   NextButton(
                     label: 'Get Started',
                     onPressed: () {
-                      widget.userData.clearSignupState();
                       Navigator.pushReplacementNamed(context, '/home');
                     },
                   ),
@@ -508,11 +507,11 @@ class _SuccessScreenState extends State<SuccessScreen> {
     );
   }
 
-  Widget _buildOptimizedCardSmall(String title, String imagePath) {
+  Widget _buildOptimizedCard(String title, String imagePath) {
     return Container(
-      height: 100,
+      height: 140,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: const Color(0xFFF0F0F0),
           width: 1.5,
@@ -529,7 +528,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
         fit: StackFit.expand,
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(13),
+            borderRadius: BorderRadius.circular(15),
             child: Image.asset(
               imagePath,
               fit: BoxFit.cover,
@@ -545,19 +544,19 @@ class _SuccessScreenState extends State<SuccessScreen> {
           ),
           Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(13),
+              borderRadius: BorderRadius.circular(15),
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
-                  Colors.black.withOpacity(0.6),
+                  Colors.black.withOpacity(0.5),
                 ],
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,13 +564,10 @@ class _SuccessScreenState extends State<SuccessScreen> {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
-                    height: 1.2,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

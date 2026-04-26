@@ -278,6 +278,15 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   String? _errorMessage;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  // Password strength indicators
+  bool _hasMinLength = false;
+  bool _hasLowerCase = false;
+  bool _hasUpperCase = false;
+  bool _hasNumbers = false;
+  bool _hasSpecialChar = false;
 
   @override
   void dispose() {
@@ -285,6 +294,16 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _updatePasswordStrength(String password) {
+    setState(() {
+      _hasMinLength = password.length >= 8;
+      _hasLowerCase = password.contains(RegExp(r'[a-z]'));
+      _hasUpperCase = password.contains(RegExp(r'[A-Z]'));
+      _hasNumbers = password.contains(RegExp(r'[0-9]'));
+      _hasSpecialChar = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+    });
   }
 
   Future<void> _createAccount() async {
@@ -347,8 +366,17 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
     if (value == null || value.isEmpty) {
       return 'Please enter a password';
     }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters long';
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters long';
+    }
+    if (!_hasUpperCase) {
+      return 'Password must contain at least one uppercase letter';
+    }
+    if (!_hasLowerCase) {
+      return 'Password must contain at least one lowercase letter';
+    }
+    if (!_hasNumbers) {
+      return 'Password must contain at least one number';
     }
     return null;
   }
@@ -423,11 +451,57 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: const Icon(Icons.visibility_off),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
+                obscureText: _obscurePassword,
+                onChanged: (value) {
+                  _updatePasswordStrength(value);
+                },
                 validator: _validatePassword,
                 enabled: !_isLoading,
+              ),
+              const SizedBox(height: 16),
+              // Password Strength Indicator
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFAFBFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFF0F0F0),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Password Requirements',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    _buildPasswordRequirement('At least 8 characters', _hasMinLength),
+                    const SizedBox(height: 10),
+                    _buildPasswordRequirement('Uppercase letter (A-Z)', _hasUpperCase),
+                    const SizedBox(height: 10),
+                    _buildPasswordRequirement('Lowercase letter (a-z)', _hasLowerCase),
+                    const SizedBox(height: 10),
+                    _buildPasswordRequirement('Numbers (0-9)', _hasNumbers),
+                    const SizedBox(height: 10),
+                    _buildPasswordRequirement('Special character (!@#\$%^&*)', _hasSpecialChar, isOptional: true),
+                  ],
+                ),
               ),
               const SizedBox(height: 24),
               TextFormField(
@@ -438,9 +512,16 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: const Icon(Icons.visibility_off),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscureConfirmPassword ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () {
+                      setState(() {
+                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
+                obscureText: _obscureConfirmPassword,
                 validator: _validateConfirmPassword,
                 enabled: !_isLoading,
               ),
@@ -508,6 +589,61 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPasswordRequirement(String requirement, bool isMet, {bool isOptional = false}) {
+    return Row(
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: isMet ? const Color(0xff13EC5B).withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: isMet ? const Color(0xff13EC5B) : Colors.grey.withOpacity(0.3),
+              width: 1.5,
+            ),
+          ),
+          child: isMet
+              ? const Icon(Icons.check, size: 16, color: Color(0xff13EC5B))
+              : const SizedBox.shrink(),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Row(
+            children: [
+              Text(
+                requirement,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: isMet ? const Color(0xFF1A1A1A) : Colors.grey[600],
+                ),
+              ),
+              if (isOptional) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'Optional',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -32,19 +32,32 @@ class _ReviewScreenState extends State<ReviewScreen> {
     signupData.calculateMetrics();
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFFAFBFC),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Column(
           children: [
             Gap(30),
             Row(
               children: [
-                IconButton(
-                  icon: Icon(Icons.arrow_back_ios),
-                  color: Colors.black,
-                  iconSize: 28,
-                  onPressed: () => Navigator.pop(context),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new),
+                    color: const Color(0xff13EC5B),
+                    iconSize: 24,
+                    onPressed: () => Navigator.pop(context),
+                  ),
                 ),
                 const Spacer(),
                 AnimatedIndicator(
@@ -52,26 +65,33 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   count: 13,
                   animationDuration: const Duration(milliseconds: 400),
                   activeColor: const Color(0xff13EC5B),
-                  inactiveColor: const Color(0xFFCCCCCC),
+                  inactiveColor: const Color(0xFFE0E0E0),
                   dotSize: 10.0,
                 ),
                 const Spacer(),
+                Container(
+                  width: 48,
+                ),
               ],
             ),
-            Gap(20),
+            Gap(28),
             const Text(
-              "REVIEW PROFILE",
+              "Review Your Profile",
               style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1A1A1A),
               ),
             ),
-            const SizedBox(height: 12),
-            const Text(
-              "Please review your details below to ensure your\npersonalized plan is accurate.",
+            const SizedBox(height: 10),
+            Text(
+              "Verify your information to create your personalized nutrition plan",
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 32),
             // Scrollable content - Grid Layout
@@ -79,14 +99,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
               child: ListView(
                 children: [
                   _buildSectionHeader("Personal Info"),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.9,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    childAspectRatio: 0.95,
                     children: [
                       _buildGridEditableItem(
                         Icons.person_outline,
@@ -104,17 +124,17 @@ class _ReviewScreenState extends State<ReviewScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 36),
                   // Body Metrics Section
                   _buildSectionHeader("Body Metrics"),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.9,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    childAspectRatio: 0.95,
                     children: [
                       _buildGridEditableItem(
                         Icons.wc,
@@ -156,17 +176,17 @@ class _ReviewScreenState extends State<ReviewScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 36),
                   // Activity & Goals Section
                   _buildSectionHeader("Activity & Goals"),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.9,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    childAspectRatio: 0.95,
                     children: [
                       _buildGridEditableItem(
                         Icons.directions_run,
@@ -190,17 +210,17 @@ class _ReviewScreenState extends State<ReviewScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 36),
                   // Nutrition Section
                   _buildSectionHeader("Calculated Metrics"),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.9,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    childAspectRatio: 0.95,
                     children: [
                       _buildGridDisplayItem(
                         Icons.calendar_today,
@@ -228,13 +248,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
               ),
             ),
             // Confirm button - goes directly to home page
-            NextButton(
-              label: 'Confirm & Start',
-              onPressed: () async {
-                signupData.calculateMetrics();
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: NextButton(
+                label: 'Confirm & Start',
+                onPressed: () async {
+                  signupData.calculateMetrics();
 
-                Navigator.pushReplacementNamed(context, '/auth_method');
-              },
+                  Navigator.pushReplacementNamed(context, '/auth_method');
+                },
+              ),
             ),
           ],
         ),
@@ -243,104 +266,26 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: Colors.black,
-      ),
-    );
-  }
-
-  Widget _buildEditableItem(
-    IconData icon,
-    String label,
-    String value,
-    VoidCallback onEdit,
-  ) {
-    return GestureDetector(
-      onTap: onEdit,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.grey[600], size: 32),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.edit, color: Colors.green, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDisplayItem(IconData icon, String label, String value) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Icon(icon, color: Colors.grey[600], size: 32),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
+          Container(
+            width: 4,
+            height: 24,
+            decoration: BoxDecoration(
+              color: const Color(0xff13EC5B),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A1A),
+              letterSpacing: 0.3,
             ),
           ),
         ],
@@ -357,48 +302,73 @@ class _ReviewScreenState extends State<ReviewScreen> {
   ) {
     return GestureDetector(
       onTap: onEdit,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFFF0F0F0),
+              width: 1.5,
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Icon(icon, color: const Color(0xff13EC5B), size: 36),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: const Color(0xff13EC5B).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: const Color(0xff13EC5B), size: 28),
               ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 8),
-            Icon(Icons.edit, color: const Color(0xff13EC5B), size: 18),
-          ],
+              const SizedBox(height: 12),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A),
+                  height: 1.3,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 10),
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: const Color(0xff13EC5B).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.edit_outlined, color: Color(0xff13EC5B), size: 16),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -406,29 +376,42 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   Widget _buildGridDisplayItem(IconData icon, String label, String value) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFF0F0F0),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: const Color(0xff13EC5B), size: 36),
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: const Color(0xff13EC5B).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: const Color(0xff13EC5B), size: 28),
+          ),
           const SizedBox(height: 12),
           Text(
             label,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
+              color: Colors.grey[500],
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
             ),
             textAlign: TextAlign.center,
           ),
@@ -436,9 +419,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
           Text(
             value,
             style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A1A),
+              height: 1.3,
             ),
             textAlign: TextAlign.center,
             maxLines: 2,
@@ -455,22 +439,66 @@ class _ReviewScreenState extends State<ReviewScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Name'),
-        content: TextField(
-          controller: _nameController,
-          decoration: const InputDecoration(hintText: 'Enter your name'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Edit Name',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                hintText: 'Enter your name',
+                filled: true,
+                fillColor: const Color(0xFFFAFBFC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFF0F0F0), width: 1.5),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFF0F0F0), width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xff13EC5B), width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                hintStyle: TextStyle(color: Colors.grey[400]),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff13EC5B),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            ),
             onPressed: () {
               setState(() => signupData.name = _nameController.text.trim());
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: const Text(
+              'Save',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -481,7 +509,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Birth Date'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Edit Birth Date',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
         content: SizedBox(
           height: 300,
           child: Row(
@@ -528,14 +565,25 @@ class _ReviewScreenState extends State<ReviewScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff13EC5B),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            ),
             onPressed: () {
               setState(() {});
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: const Text(
+              'Save',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -546,23 +594,34 @@ class _ReviewScreenState extends State<ReviewScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Gender'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Select Gender',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile(
-              title: const Text('Male'),
+              title: const Text('Male', style: TextStyle(fontWeight: FontWeight.w600)),
               value: 'male',
               groupValue: signupData.gender,
+              activeColor: const Color(0xff13EC5B),
               onChanged: (value) {
                 setState(() => signupData.gender = value);
                 Navigator.pop(context);
               },
             ),
             RadioListTile(
-              title: const Text('Female'),
+              title: const Text('Female', style: TextStyle(fontWeight: FontWeight.w600)),
               value: 'female',
               groupValue: signupData.gender,
+              activeColor: const Color(0xff13EC5B),
               onChanged: (value) {
                 setState(() => signupData.gender = value);
                 Navigator.pop(context);
@@ -581,18 +640,60 @@ class _ReviewScreenState extends State<ReviewScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Height (cm)'),
-        content: TextField(
-          controller: heightController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(hintText: 'Enter height in cm'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Edit Height',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            TextField(
+              controller: heightController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                hintText: 'Enter height in cm',
+                suffixText: 'cm',
+                filled: true,
+                fillColor: const Color(0xFFFAFBFC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFF0F0F0), width: 1.5),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFF0F0F0), width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xff13EC5B), width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                hintStyle: TextStyle(color: Colors.grey[400]),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff13EC5B),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            ),
             onPressed: () {
               final height = double.tryParse(heightController.text);
               if (height != null) {
@@ -600,7 +701,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
               }
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: const Text(
+              'Save',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -614,18 +718,60 @@ class _ReviewScreenState extends State<ReviewScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Current Weight (kg)'),
-        content: TextField(
-          controller: weightController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(hintText: 'Enter current weight'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Edit Current Weight',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            TextField(
+              controller: weightController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                hintText: 'Enter current weight',
+                suffixText: 'kg',
+                filled: true,
+                fillColor: const Color(0xFFFAFBFC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFF0F0F0), width: 1.5),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFF0F0F0), width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xff13EC5B), width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                hintStyle: TextStyle(color: Colors.grey[400]),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff13EC5B),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            ),
             onPressed: () {
               final weight = double.tryParse(weightController.text);
               if (weight != null) {
@@ -633,7 +779,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
               }
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: const Text(
+              'Save',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -647,18 +796,60 @@ class _ReviewScreenState extends State<ReviewScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Goal Weight (kg)'),
-        content: TextField(
-          controller: weightController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(hintText: 'Enter goal weight'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Edit Goal Weight',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            TextField(
+              controller: weightController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                hintText: 'Enter goal weight',
+                suffixText: 'kg',
+                filled: true,
+                fillColor: const Color(0xFFFAFBFC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFF0F0F0), width: 1.5),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFF0F0F0), width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xff13EC5B), width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                hintStyle: TextStyle(color: Colors.grey[400]),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff13EC5B),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            ),
             onPressed: () {
               final weight = double.tryParse(weightController.text);
               if (weight != null) {
@@ -666,7 +857,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
               }
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: const Text(
+              'Save',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -677,23 +871,34 @@ class _ReviewScreenState extends State<ReviewScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Do you have Diabetes?'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Do you have Diabetes?',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile(
-              title: const Text('Yes'),
+              title: const Text('Yes', style: TextStyle(fontWeight: FontWeight.w600)),
               value: true,
               groupValue: signupData.hasObesity,
+              activeColor: const Color(0xff13EC5B),
               onChanged: (value) {
                 setState(() => signupData.hasObesity = value);
                 Navigator.pop(context);
               },
             ),
             RadioListTile(
-              title: const Text('No'),
+              title: const Text('No', style: TextStyle(fontWeight: FontWeight.w600)),
               value: false,
               groupValue: signupData.hasObesity,
+              activeColor: const Color(0xff13EC5B),
               onChanged: (value) {
                 setState(() => signupData.hasObesity = value);
                 Navigator.pop(context);
@@ -709,7 +914,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Activity Level'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Activity Level',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -723,9 +937,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
               .entries
               .map(
                 (e) => RadioListTile(
-                  title: Text(e.value),
+                  title: Text(e.value, style: const TextStyle(fontWeight: FontWeight.w600)),
                   value: e.key,
                   groupValue: signupData.activityLevel,
+                  activeColor: const Color(0xff13EC5B),
                   onChanged: (value) {
                     setState(() => signupData.activityLevel = value);
                     Navigator.pop(context);
@@ -742,7 +957,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Meal Goal'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Meal Goal',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -754,9 +978,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
               .entries
               .map(
                 (e) => RadioListTile(
-                  title: Text(e.value),
+                  title: Text(e.value, style: const TextStyle(fontWeight: FontWeight.w600)),
                   value: e.key,
                   groupValue: signupData.mealGoal,
+                  activeColor: const Color(0xff13EC5B),
                   onChanged: (value) {
                     setState(() => signupData.mealGoal = value);
                     Navigator.pop(context);
@@ -785,7 +1010,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setStateDialog) => AlertDialog(
-          title: const Text('Edit Workout Days'),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Text(
+            'Workout Days',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: days
@@ -793,8 +1027,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 .entries
                 .map(
                   (e) => CheckboxListTile(
-                    title: Text(e.value),
+                    title: Text(e.value, style: const TextStyle(fontWeight: FontWeight.w600)),
                     value: selectedDays.contains(e.key),
+                    activeColor: const Color(0xff13EC5B),
                     onChanged: (value) {
                       setStateDialog(() {
                         if (value ?? false) {
@@ -811,9 +1046,17 @@ class _ReviewScreenState extends State<ReviewScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+              ),
             ),
-            TextButton(
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xff13EC5B),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              ),
               onPressed: () {
                 setState(() {
                   signupData.workoutDays =
@@ -821,7 +1064,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 });
                 Navigator.pop(context);
               },
-              child: const Text('Save'),
+              child: const Text(
+                'Save',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+              ),
             ),
           ],
         ),
