@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'Screens/Login/login_screen.dart';
 import 'Screens/Signup/activity_screen.dart';
 import 'Screens/Signup/auth_method_screen.dart';
@@ -115,6 +116,7 @@ class MyApp extends StatelessWidget {
     );
   }
 
+  //AAAAAAAAAAA
   Widget _buildPage(String routeName) {
     switch (routeName) {
       case '/login':
