@@ -12,7 +12,8 @@ class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({super.key, required this.email});
 
   @override
-  State<EmailVerificationScreen> createState() => _EmailVerificationScreenState();
+  State<EmailVerificationScreen> createState() =>
+      _EmailVerificationScreenState();
 }
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
@@ -82,7 +83,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       );
 
       setState(() {
-        _statusMessage = 'Verification email resent. Please click the link in your email.';
+        _statusMessage =
+            'Verification email resent. Please click the link in your email.';
       });
     } catch (e) {
       setState(() {
@@ -101,14 +103,15 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     try {
       // Create Firebase Auth account and send verification email
       if (signupData.email != null && signupData.password != null) {
-        final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: signupData.email!,
-          password: signupData.password!,
-        );
+        final userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+              email: signupData.email!,
+              password: signupData.password!,
+            );
 
         // Send verification email
         await userCredential.user?.sendEmailVerification();
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -152,12 +155,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       if (refreshedUser != null && refreshedUser.emailVerified) {
         if (!mounted) return;
 
-        Navigator.pushReplacementNamed(context, '/loading');
+        Navigator.pushReplacementNamed(context, '/checkout');
         return;
       }
 
       setState(() {
-        _statusMessage = 'Email not verified yet. Please check your inbox and click the verification link.';
+        _statusMessage =
+            'Email not verified yet. Please check your inbox and click the verification link.';
       });
     } catch (e) {
       setState(() {
@@ -221,7 +225,11 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               Gap(20),
               const Text(
                 'Verify Your Email',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -249,24 +257,33 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 onPressed: _isChecking ? null : _checkIfVerified,
                 child: _isChecking
                     ? const SizedBox(
                         height: 18,
                         width: 18,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
                       )
                     : const Text('I have verified my email'),
               ),
               const SizedBox(height: 16),
               TextButton(
-                onPressed: _remainingSeconds == 0 && !_isSending ? _resendVerificationEmail : null,
+                onPressed: _remainingSeconds == 0 && !_isSending
+                    ? _resendVerificationEmail
+                    : null,
                 child: Text(
                   resendLabel,
                   style: TextStyle(
-                    color: _remainingSeconds == 0 && !_isSending ? Colors.green : Colors.grey,
+                    color: _remainingSeconds == 0 && !_isSending
+                        ? Colors.green
+                        : Colors.grey,
                   ),
                 ),
               ),

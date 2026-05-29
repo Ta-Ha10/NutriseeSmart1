@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:gap/gap.dart';
+import 'package:nutriseesmart1/main/workout_screen.dart';
+import 'package:nutriseesmart1/main/menu_screen.dart';
 
 import '../Screens/Signup/meals_screen.dart';
 import '../services/firestore_service.dart';
 import '../widgets/components.dart';
-import 'workout_screen.dart'; // added import
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late final Future<Map<String, dynamic>?> _userDataFuture;
+  bool _isMenuOpen = false;
 
   @override
   void initState() {
@@ -53,7 +56,37 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }
 
-              return HomeBody(userData: snapshot.data);
+              final name =
+                  _readString(
+                    _readMap(snapshot.data, 'personalData'),
+                    'name',
+                  ) ??
+                  'Athlete';
+              final menuWidth = MediaQuery.of(context).size.width * 0.6;
+              return Stack(
+                children: [
+                  HomeBody(
+                    userData: snapshot.data,
+                    onMenuTap: () => setState(() => _isMenuOpen = true),
+                  ),
+                  if (_isMenuOpen) ...[
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: SizedBox(
+                        width: menuWidth,
+                        height: double.infinity,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: MenuScreen(
+                            userName: name,
+                            onClose: () => setState(() => _isMenuOpen = false),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              );
             },
           ),
         ),
@@ -64,8 +97,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class HomeBody extends StatelessWidget {
   final Map<String, dynamic>? userData;
+  final VoidCallback onMenuTap;
 
-  const HomeBody({super.key, this.userData});
+  const HomeBody({super.key, this.userData, required this.onMenuTap});
 
   @override
   Widget build(BuildContext context) {
@@ -75,10 +109,13 @@ class HomeBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        HomeHeader(name: _readString(personalData, 'name') ?? 'Athlete'),
+        HomeHeader(
+          name: _readString(personalData, 'name') ?? 'Athlete',
+          onMenuTap: onMenuTap,
+        ),
         const SizedBox(height: 20),
         NutritionOverview(
-          targetCalories: _readNum(dietPlan, 'targetCalories')?.toDouble(),
+          targetCalories: _readNum(dietPlan, 'targetCalories')?.toDouble() ?? _readNum(dietPlan, 'tdee')?.toDouble(),
           carbs: _readNum(dietPlan, 'carbGrams')?.toDouble(),
           protein: _readNum(dietPlan, 'proteinGrams')?.toDouble(),
           fats: _readNum(dietPlan, 'fatGrams')?.toDouble(),
@@ -94,8 +131,9 @@ class HomeBody extends StatelessWidget {
 
 class HomeHeader extends StatelessWidget {
   final String name;
+  final VoidCallback onMenuTap;
 
-  const HomeHeader({super.key, required this.name});
+  const HomeHeader({super.key, required this.name, required this.onMenuTap});
 
   @override
   Widget build(BuildContext context) {
@@ -103,26 +141,33 @@ class HomeHeader extends StatelessWidget {
       children: [
         Expanded(
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircleAvatar(
-                radius: 22,
-                backgroundImage: AssetImage('assets/Photoes/Profile Photo.png'),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
+              IconButton(onPressed: onMenuTap, icon: const Icon(Icons.menu)),
+              Row(
                 children: [
-                  const Text(
-                    'Good Morning,',
-                    style: TextStyle(color: Colors.green),
-                    textAlign: TextAlign.center,
+                  Gap(75),
+                  const CircleAvatar(
+                    radius: 22,
+                    backgroundImage: AssetImage(
+                      'assets/Photoes/Profile Photo.png',
+                    ),
                   ),
-                  Text(
-                    name,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  const SizedBox(width: 10),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Good Morning,',
+                        style: TextStyle(color: Colors.green),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        name,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -348,7 +393,9 @@ class WeeklyIntake extends StatelessWidget {
                                   child: Align(
                                     alignment: Alignment.bottomCenter,
                                     child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 600),
+                                      duration: const Duration(
+                                        milliseconds: 600,
+                                      ),
                                       curve: Curves.easeOutCubic,
                                       width: 18,
                                       height: 180 * weeklyValues[index],
@@ -497,9 +544,7 @@ class _NavItem extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
-        child: Center(
-          child: Icon(icon, color: color, size: 30),
-        ),
+        child: Center(child: Icon(icon, color: color, size: 30)),
       ),
     );
   }
@@ -510,11 +555,7 @@ class _NavDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      height: 54,
-      color: const Color(0xFFEAEAEA),
-    );
+    return Container(width: 1, height: 54, color: const Color(0xFFEAEAEA));
   }
 }
 

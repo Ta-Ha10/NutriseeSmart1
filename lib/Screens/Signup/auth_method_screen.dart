@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -162,17 +162,13 @@ class _AuthMethodScreenState extends State<AuthMethodScreen> {
         signupData.name = googleUser.displayName!;
       }
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/loading');
+      Navigator.pushReplacementNamed(context, '/checkout');
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      final message =
-          e.code == 'account-exists-with-different-credential'
-              ? 'This email is already registered. Please log in instead.'
-              : 'Google sign-in failed: ${e.message ?? e.code}';
-      _showErrorDialog(
-        context,
-        message,
-      );
+      final message = e.code == 'account-exists-with-different-credential'
+          ? 'This email is already registered. Please log in instead.'
+          : 'Google sign-in failed: ${e.message ?? e.code}';
+      _showErrorDialog(context, message);
     } catch (e) {
       if (!mounted) return;
       _showErrorDialog(context, 'Google sign-in failed: ${e.toString()}');
@@ -452,7 +448,11 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
                   ),
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
                     onPressed: () {
                       setState(() {
                         _obscurePassword = !_obscurePassword;
@@ -491,15 +491,28 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    _buildPasswordRequirement('At least 8 characters', _hasMinLength),
+                    _buildPasswordRequirement(
+                      'At least 8 characters',
+                      _hasMinLength,
+                    ),
                     const SizedBox(height: 10),
-                    _buildPasswordRequirement('Uppercase letter (A-Z)', _hasUpperCase),
+                    _buildPasswordRequirement(
+                      'Uppercase letter (A-Z)',
+                      _hasUpperCase,
+                    ),
                     const SizedBox(height: 10),
-                    _buildPasswordRequirement('Lowercase letter (a-z)', _hasLowerCase),
+                    _buildPasswordRequirement(
+                      'Lowercase letter (a-z)',
+                      _hasLowerCase,
+                    ),
                     const SizedBox(height: 10),
                     _buildPasswordRequirement('Numbers (0-9)', _hasNumbers),
                     const SizedBox(height: 10),
-                    _buildPasswordRequirement('Special character (!@#\$%^&*)', _hasSpecialChar, isOptional: true),
+                    _buildPasswordRequirement(
+                      'Special character (!@#\$%^&*)',
+                      _hasSpecialChar,
+                      isOptional: true,
+                    ),
                   ],
                 ),
               ),
@@ -513,7 +526,11 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
                   ),
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscureConfirmPassword ? Icons.visibility_off : Icons.visibility),
+                    icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
                     onPressed: () {
                       setState(() {
                         _obscureConfirmPassword = !_obscureConfirmPassword;
@@ -592,17 +609,25 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
     );
   }
 
-  Widget _buildPasswordRequirement(String requirement, bool isMet, {bool isOptional = false}) {
+  Widget _buildPasswordRequirement(
+    String requirement,
+    bool isMet, {
+    bool isOptional = false,
+  }) {
     return Row(
       children: [
         Container(
           width: 24,
           height: 24,
           decoration: BoxDecoration(
-            color: isMet ? const Color(0xff13EC5B).withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+            color: isMet
+                ? const Color(0xff13EC5B).withOpacity(0.2)
+                : Colors.grey.withOpacity(0.1),
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: isMet ? const Color(0xff13EC5B) : Colors.grey.withOpacity(0.3),
+              color: isMet
+                  ? const Color(0xff13EC5B)
+                  : Colors.grey.withOpacity(0.3),
               width: 1.5,
             ),
           ),
@@ -625,7 +650,10 @@ class _EmailPasswordScreenState extends State<EmailPasswordScreen> {
               if (isOptional) ...[
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.orange.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(4),

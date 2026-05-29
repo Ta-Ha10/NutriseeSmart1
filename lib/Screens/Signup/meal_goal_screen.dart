@@ -14,7 +14,7 @@ class MealGoalScreen extends StatefulWidget {
 class _MealGoalScreenState extends State<MealGoalScreen> {
   int? selectedIndex; // No default selection
 
-  final List<String> options = ['Weekly Plan', 'Daily Plan', 'Single Meal'];
+  final List<String> options = ['Lose Weight', 'Gain Weight', 'Maintenance'];
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +31,9 @@ class _MealGoalScreenState extends State<MealGoalScreen> {
                 color: Colors.black,
               ),
               children: [
-                TextSpan(text: "How often should we\nupdate your "),
+                TextSpan(text: "What's your "),
                 TextSpan(
-                  text: "plan",
+                  text: "weight goal",
                   style: TextStyle(
                     color: Colors.green,
                     fontWeight: FontWeight.bold,
@@ -54,7 +54,7 @@ class _MealGoalScreenState extends State<MealGoalScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "Meal Planning Goal",
+                "Weight Goal",
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -97,29 +97,6 @@ class _MealGoalScreenState extends State<MealGoalScreen> {
                                 color: Colors.black,
                               ),
                             ),
-                            if (index == 0)
-                              Positioned(
-                                right: 20,
-                                top: 3,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green,
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: const Text(
-                                    "Recommended",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
                           ],
                         ),
                       ),
@@ -169,9 +146,9 @@ class _MealGoalScreenState extends State<MealGoalScreen> {
 
     switch (screenType) {
       case "meal_goal":
-        title = "Why do we ask for your plan update frequency?";
+        title = "Why do we ask for your weight goal?";
         explanation =
-            "Different people have different needs. Some prefer fresh meal ideas every day, while others are happy with weekly plans. This helps us deliver the right amount of variety and planning that matches your lifestyle.";
+            "Your weight goal helps us calculate the right calorie targets for your meals. Whether you want to lose weight, gain weight, or maintain your current weight, we'll adjust your meal recommendations accordingly.";
         break;
       default:
         title = "Information";

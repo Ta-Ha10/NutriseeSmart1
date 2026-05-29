@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +7,7 @@ import 'Screens/Signup/activity_screen.dart';
 import 'Screens/Signup/auth_method_screen.dart';
 import 'Screens/Signup/birth_screen.dart';
 import 'Screens/Signup/breakfast_time_screen.dart';
+import 'Screens/Signup/checkout_screen.dart';
 import 'Screens/Signup/current_weight_screen.dart' show CurrentWeightScreen;
 import 'Screens/Signup/dinner_time_screen.dart';
 import 'Screens/Signup/email_verification_screen.dart';
@@ -19,7 +21,6 @@ import 'Screens/Signup/obesity_screen.dart';
 import 'Screens/Signup/review_screen.dart';
 import 'Screens/Signup/success_screen.dart';
 import 'Screens/Signup/workout_frequency_screen.dart';
-import 'Screens/Splash_Screen.dart';
 import 'firebase_options.dart';
 import 'main/home_screen.dart';
 import 'utils/page_transitions.dart';
@@ -29,6 +30,32 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator(color: Colors.green)),
+          );
+        }
+
+        if (snapshot.hasData && snapshot.data != null) {
+          // User is signed in, show home screen
+          return const HomeScreen();
+        } else {
+          // User is not signed in, show login screen
+          return const LoginScreen();
+        }
+      },
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -45,8 +72,8 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xffF2EDE9),
         fontFamily: GoogleFonts.inter().fontFamily,
       ),
-      // Open SplashScreen first
-      home: SplashScreen(), // changed from NameInputScreen to SplashScreen
+      // Check authentication state and show appropriate screen
+      home: const AuthWrapper(),
       onGenerateRoute: (settings) {
         // Handle email verification route with email parameter
         if (settings.name == '/email_verification') {
@@ -57,7 +84,7 @@ class MyApp extends StatelessWidget {
             );
           }
         }
-        
+
         final Widget page = _buildPage(settings.name ?? '');
         if (page != const SizedBox.shrink()) {
           return CustomPageTransitions.slideAndFadeTransition(page);
@@ -76,6 +103,7 @@ class MyApp extends StatelessWidget {
         '/loading': (context) => LoadingScreen(userData: signupData),
         '/review': (context) => const ReviewScreen(),
         '/auth_method': (context) => const AuthMethodScreen(),
+        '/checkout': (context) => const CheckoutScreen(),
         '/success': (context) => SuccessScreen(userData: signupData),
         '/home': (context) => const HomeScreen(),
         '/breakfast_time': (context) => const BreakfastTimeScreen(),
@@ -111,6 +139,8 @@ class MyApp extends StatelessWidget {
         return const ReviewScreen();
       case '/auth_method':
         return const AuthMethodScreen();
+      case '/checkout':
+        return const CheckoutScreen();
       case '/success':
         return SuccessScreen(userData: signupData);
       case '/home':

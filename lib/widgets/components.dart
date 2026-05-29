@@ -53,10 +53,7 @@ class MacroCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             amountLabel,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Color(0xFF7A7A7A),
-            ),
+            style: const TextStyle(fontSize: 11, color: Color(0xFF7A7A7A)),
           ),
         ],
       ),
@@ -69,7 +66,12 @@ class MacroProgress extends StatelessWidget {
   final String value;
   final double progress;
 
-  const MacroProgress({super.key, required this.label, required this.value, required this.progress});
+  const MacroProgress({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.progress,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +82,11 @@ class MacroProgress extends StatelessWidget {
           children: [Text(label), Text(value)],
         ),
         const SizedBox(height: 4),
-        LinearProgressIndicator(value: progress),
+        LinearProgressIndicator(
+          value: progress.clamp(0.0, 1.0),
+          color: Colors.green,
+          backgroundColor: Colors.greenAccent.withValues(alpha: 0.2),
+        ),
         const SizedBox(height: 10),
       ],
     );
@@ -91,17 +97,34 @@ class FoodItem extends StatelessWidget {
   final String name;
   final String kcal;
   final String? imagePath;
+  final bool isNetworkImage;
+  final VoidCallback? onTap;
 
-  const FoodItem({super.key, required this.name, required this.kcal, this.imagePath});
+  const FoodItem({
+    super.key,
+    required this.name,
+    required this.kcal,
+    this.imagePath,
+    this.isNetworkImage = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+    final content = Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.shade200, width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -111,24 +134,88 @@ class FoodItem extends StatelessWidget {
               children: [
                 if (imagePath != null)
                   Container(
-                    width: 50,
-                    height: 50,
-                    margin: const EdgeInsets.only(right: 12),
+                    width: 60,
+                    height: 60,
+                    margin: const EdgeInsets.only(right: 16),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                       image: DecorationImage(
-                        image: AssetImage(imagePath!),
+                        image: isNetworkImage
+                            ? NetworkImage(imagePath!)
+                            : AssetImage(imagePath!) as ImageProvider,
                         fit: BoxFit.cover,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Container(
+                    width: 60,
+                    height: 60,
+                    margin: const EdgeInsets.only(right: 16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.grey.shade200,
+                    ),
+                    child: const Icon(
+                      Icons.restaurant,
+                      color: Colors.grey,
+                      size: 30,
                     ),
                   ),
-                Expanded(child: Text(name)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$kcal kcal',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.green,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-          Text('$kcal kcal', style: const TextStyle(color: Colors.green)),
+          if (onTap != null)
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.grey,
+              size: 16,
+            ),
         ],
       ),
+    );
+
+    if (onTap == null) {
+      return content;
+    }
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: content,
     );
   }
 }
@@ -143,16 +230,43 @@ class AddFoodButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.green, style: BorderStyle.solid),
-          borderRadius: BorderRadius.circular(14),
+          gradient: const LinearGradient(
+            colors: [Colors.green, Color(0xFF4CAF50)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.green.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        child: Center(
-          child: Text(label, style: const TextStyle(color: Colors.green)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.add,
+              color: Colors.white,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );
