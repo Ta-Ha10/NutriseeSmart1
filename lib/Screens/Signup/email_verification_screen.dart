@@ -155,7 +155,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       if (refreshedUser != null && refreshedUser.emailVerified) {
         if (!mounted) return;
 
-        Navigator.pushReplacementNamed(context, '/checkout');
+        Navigator.pushReplacementNamed(context, '/loading');
         return;
       }
 

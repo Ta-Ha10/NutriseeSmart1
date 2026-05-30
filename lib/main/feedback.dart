@@ -165,6 +165,30 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+
+            // End Recipe Button
+            OutlinedButton.icon(
+              onPressed: () {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+              icon: const Icon(Icons.check_circle, color: Color(0xff13EC5B), size: 20),
+              label: const Text(
+                "End Recipe",
+                style: TextStyle(
+                  color: Color(0xff13EC5B),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xff13EC5B), width: 1.5),
+                minimumSize: const Size(double.infinity, 52),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
           ],
         ),

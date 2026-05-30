@@ -8,7 +8,7 @@ import 'Screens/Signup/activity_screen.dart';
 import 'Screens/Signup/auth_method_screen.dart';
 import 'Screens/Signup/birth_screen.dart';
 import 'Screens/Signup/breakfast_time_screen.dart';
-import 'Screens/Signup/checkout_screen.dart';
+import 'Screens/cooking_timer_screen.dart';
 import 'Screens/Signup/current_weight_screen.dart' show CurrentWeightScreen;
 import 'Screens/Signup/dinner_time_screen.dart';
 import 'Screens/Signup/email_verification_screen.dart';
@@ -86,6 +86,23 @@ class MyApp extends StatelessWidget {
           }
         }
 
+        // Handle cooking timer route with recipe data
+        if (settings.name == '/cooking_timer') {
+          final args = settings.arguments as Map<String, dynamic>?;
+          if (args != null) {
+            return CustomPageTransitions.slideAndFadeTransition(
+              CookingTimerScreen(
+                recipeName: args['recipeName'] ?? 'Recipe',
+                ingredients: args['ingredients'] ?? [],
+                instructions: args['instructions'] ?? [],
+                prepTime: args['prepTime'] ?? 30,
+                imageUrl: args['imageUrl'],
+                mealType: args['mealType'],
+              ),
+            );
+          }
+        }
+
         final Widget page = _buildPage(settings.name ?? '');
         if (page != const SizedBox.shrink()) {
           return CustomPageTransitions.slideAndFadeTransition(page);
@@ -104,7 +121,6 @@ class MyApp extends StatelessWidget {
         '/loading': (context) => LoadingScreen(userData: signupData),
         '/review': (context) => const ReviewScreen(),
         '/auth_method': (context) => const AuthMethodScreen(),
-        '/checkout': (context) => const CheckoutScreen(),
         '/success': (context) => SuccessScreen(userData: signupData),
         '/home': (context) => const HomeScreen(),
         '/breakfast_time': (context) => const BreakfastTimeScreen(),
@@ -141,8 +157,6 @@ class MyApp extends StatelessWidget {
         return const ReviewScreen();
       case '/auth_method':
         return const AuthMethodScreen();
-      case '/checkout':
-        return const CheckoutScreen();
       case '/success':
         return SuccessScreen(userData: signupData);
       case '/home':

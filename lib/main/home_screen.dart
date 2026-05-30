@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               if (snapshot.hasError) {
                 return const Center(
-                  child: Text('Could not load your profile data.'),
+                  child: Text('Couldn\'t load your profile data.'),
                 );
               }
 

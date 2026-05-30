@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../services/ai_chat_service.dart';
+import '../main/feedback.dart';
 
 class RecipeDetailsScreen extends StatefulWidget {
   final String recipeName;
@@ -33,6 +35,12 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
   List<String> _aiCookware = const [];
   int? _aiPreparationTimeMinutes;
   bool _nutritionExpanded = false;
+  int _currentStepIndex = -1;
+  Set<int> _completedSteps = {};
+  late Timer _recipeTimer;
+  int _remainingSeconds = 0;
+  bool _timerActive = false;
+  bool _recipeEnded = false;
 
   @override
   void initState() {
@@ -41,6 +49,37 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadPreparationSteps();
     });
+  }
+
+  void _startTimer(int minutes) {
+    _remainingSeconds = minutes * 60;
+    _timerActive = true;
+    _recipeTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _timerActive = false;
+          timer.cancel();
+          _endRecipe();
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    if (_timerActive) {
+      _recipeTimer.cancel();
+    }
+    super.dispose();
+  }
+
+  String _formatTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
   Future<void> _loadPreparationSteps() async {
@@ -84,6 +123,253 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
     } finally {
       if (mounted) setState(() => _loadingInstructions = false);
     }
+  }
+
+  Map<String, String> _validateIngredients() {
+    final ingredients = _recipeIngredients();
+    final invalidIngredients = <String, String>{};
+
+    for (final ingredient in ingredients) {
+      final name = ingredient['name'] ?? 'Unknown';
+      final quantity = ingredient['quantity']?.trim() ?? '';
+
+      if (quantity.isEmpty) {
+        invalidIngredients[name] = 'No quantity specified';
+      } else {
+        final quantityNum = double.tryParse(quantity.split(' ').first);
+        if (quantityNum == 0 || quantityNum == null) {
+          if (!quantity.toLowerCase().contains('taste') &&
+              !quantity.toLowerCase().contains('pinch') &&
+              !quantity.toLowerCase().contains('dash')) {
+            invalidIngredients[name] = 'Quantity is 0 or invalid: $quantity';
+          }
+        }
+      }
+    }
+
+    return invalidIngredients;
+  }
+
+  void _showAddMealDialog() {
+    final invalidIngredients = _validateIngredients();
+
+    if (invalidIngredients.isNotEmpty) {
+      _showValidationError(invalidIngredients);
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Add ${widget.mealType ?? "Meal"}',
+                  style: GoogleFonts.inter(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF243447),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'How would you like to add this meal?',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF243447),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _addToMealNow();
+                        },
+                        icon: const Icon(Icons.timer, color: Colors.white),
+                        label: Text(
+                          'Add Now',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF243447),
+                          side: const BorderSide(
+                            color: Color(0xFF243447),
+                            width: 1.5,
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _addToMealLater();
+                        },
+                        icon: const Icon(Icons.check_circle_outline),
+                        label: Text(
+                          'Add Later',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showValidationError(Map<String, String> invalidIngredients) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+              const SizedBox(width: 12),
+              Text(
+                'Invalid Ingredients',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Please fix the following ingredient issues:',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.grey[700],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...invalidIngredients.entries.map((entry) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.orange.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            entry.key,
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF243447),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            entry.value,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: Colors.orange[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'OK',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF243447),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _addToMealLater() {
+    if (widget.onAddToMeal != null) {
+      widget.onAddToMeal!();
+    }
+    if (!mounted) return;
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${widget.recipeName} added to ${widget.mealType}',
+          style: GoogleFonts.inter(color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFF49B44E),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _addToMealNow() {
+    if (widget.onAddToMeal != null) {
+      widget.onAddToMeal!();
+    }
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(
+      context,
+      '/cooking_timer',
+      arguments: {
+        'recipeName': widget.recipeName,
+        'ingredients': _recipeIngredients(),
+        'instructions': _aiInstructions,
+        'prepTime': _aiPreparationTimeMinutes ?? 30,
+        'imageUrl': _getImageUrl(),
+        'mealType': widget.mealType,
+      },
+    );
   }
 
   void _changeInstructionLanguage(String language) {
@@ -610,8 +896,8 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
           floatingActionButton:
               widget.onAddToMeal != null && widget.mealType != null
               ? FloatingActionButton.extended(
-                  onPressed: widget.onAddToMeal,
-                  backgroundColor: const Color(0xFF243447),
+                  onPressed: _showAddMealDialog,
+                  backgroundColor: const Color(0xFF13EC5B),
                   icon: const Icon(Icons.add, color: Colors.white),
                   label: Text(
                     'Add to ${widget.mealType}',
@@ -1249,6 +1535,10 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
     return Column(
       children: [
         _buildInstructionsHeader(),
+        if (_aiPreparationTimeMinutes != null && _aiPreparationTimeMinutes! > 0) ...[
+          const SizedBox(height: 12),
+          _buildTimerWidget(),
+        ],
         const SizedBox(height: 18),
         Expanded(child: _buildInstructionsContent()),
       ],
@@ -1315,6 +1605,115 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
             fontWeight: FontWeight.w800,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTimerWidget() {
+    final isAllStepsCompleted = _completedSteps.length == _aiInstructions.length;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: isAllStepsCompleted ? const Color(0xFFFFF2D8) : const Color(0xFFF0F0F0),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isAllStepsCompleted ? const Color(0xFFFFD966) : const Color(0xFFE0E0E0),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.schedule,
+            color: isAllStepsCompleted ? const Color(0xFF8B6914) : const Color(0xFFCCCCCC),
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Preparation Time',
+                  style: GoogleFonts.inter(
+                    color: isAllStepsCompleted
+                        ? const Color(0xFF8B6914)
+                        : const Color(0xFFCCCCCC),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                if (_timerActive)
+                  Text(
+                    'Time Remaining: ${_formatTime(_remainingSeconds)}',
+                    style: GoogleFonts.inter(
+                      color: const Color(0xFF243447),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  )
+                else
+                  Text(
+                    isAllStepsCompleted
+                        ? '${_aiPreparationTimeMinutes} minutes'
+                        : 'Complete all steps to start timer',
+                    style: GoogleFonts.inter(
+                      color: isAllStepsCompleted
+                          ? const Color(0xFF243447)
+                          : const Color(0xFFCCCCCC),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (isAllStepsCompleted)
+            if (!_timerActive)
+              ElevatedButton.icon(
+                onPressed: () => _startTimer(_aiPreparationTimeMinutes ?? 30),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFC107),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+                icon: const Icon(Icons.play_arrow, color: Colors.white, size: 18),
+                label: Text(
+                  'Start',
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+              )
+            else
+              ElevatedButton.icon(
+                onPressed: () {
+                  _recipeTimer.cancel();
+                  setState(() => _timerActive = false);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF8F7E),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+                icon: const Icon(Icons.pause, color: Colors.white, size: 18),
+                label: Text(
+                  'Pause',
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+        ],
       ),
     );
   }
@@ -1391,45 +1790,216 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
   }
 
   Widget _buildInstructionStep(int index, String text) {
+    final isCurrentStep = _currentStepIndex == index;
+    final isCompleted = _completedSteps.contains(index);
+    final isLast = index == _aiInstructions.length - 1;
+    
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
         children: [
-          SizedBox(
-            width: 24,
-            child: Text(
-              '${index + 1}',
-              style: GoogleFonts.inter(
-                color: const Color(0xFF243447),
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-          const SizedBox(width: 2),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RichText(
-                  text: TextSpan(
-                    style: GoogleFonts.inter(
-                      color: const Color(0xFF20262D),
-                      fontSize: 16,
-                      height: 1.5,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    children: _highlightInstruction(text),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 24,
+                child: Text(
+                  '${index + 1}',
+                  style: GoogleFonts.inter(
+                    color: isCompleted
+                        ? const Color(0xFF76C98A)
+                        : const Color(0xFF243447),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 10),
-                _buildIngredientChips(maxItems: 4),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        style: GoogleFonts.inter(
+                          color: const Color(0xFF20262D),
+                          fontSize: 16,
+                          height: 1.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        children: _highlightInstruction(text),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildIngredientChips(maxItems: 4),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (isCurrentStep || (!isCompleted && _currentStepIndex == -1 && index == 0)) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: isLast
+                    ? ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const FeedbackScreen(),
+                            ),
+                            (route) => route.isFirst,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF76C98A),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'End Recipe',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
+                        ),
+                      )
+                    : ElevatedButton(
+                        onPressed: () => _completeStep(index, isLast),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF76C98A),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'Complete',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+              ),
+            ],
+        ],
+      ),
+    );
+  }
+
+  void _completeStep(int index, bool isLast) {
+    setState(() {
+      _currentStepIndex = index;
+      _completedSteps.add(index);
+    });
+
+    if (isLast) {
+      _endRecipe();
+    } else if (index < _aiInstructions.length - 1) {
+      // Optionally scroll to next step or show next step
+      setState(() {
+        _currentStepIndex = index + 1;
+      });
+    }
+  }
+
+  void _endRecipe() {
+    if (_recipeEnded) return;
+    _recipeEnded = true;
+    if (_timerActive) {
+      _recipeTimer.cancel();
+      _timerActive = false;
+    }
+    _showRecipeCompletionDialog();
+  }
+
+  void _showRecipeCompletionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEAF3EE),
+                    borderRadius: BorderRadius.circular(40),
+                  ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    color: Color(0xFF76C98A),
+                    size: 50,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'End Recipe',
+                  style: GoogleFonts.inter(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF243447),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _remainingSeconds == 0 && !_timerActive
+                      ? 'Time is up! You have completed ${widget.recipeName}.'
+                      : 'Great job! You have completed ${widget.recipeName}.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 28),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => const FeedbackScreen(),
+                        ),
+                        (route) => route.isFirst,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF76C98A),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      'Continue to Feedback',
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

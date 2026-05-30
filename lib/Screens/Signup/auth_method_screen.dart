@@ -162,7 +162,7 @@ class _AuthMethodScreenState extends State<AuthMethodScreen> {
         signupData.name = googleUser.displayName!;
       }
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/checkout');
+      Navigator.pushReplacementNamed(context, '/loading');
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       final message = e.code == 'account-exists-with-different-credential'
