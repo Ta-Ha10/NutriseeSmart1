@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../services/firestore_service.dart';
+
 class RecipeFeedbackScreen extends StatefulWidget {
   final String recipeName;
+  final String? recipeId;
 
   const RecipeFeedbackScreen({
     super.key,
     required this.recipeName,
+    this.recipeId,
   });
 
   @override
@@ -18,6 +22,7 @@ class _RecipeFeedbackScreenState extends State<RecipeFeedbackScreen> {
   final TextEditingController _commentController = TextEditingController();
   String _difficultyFeedback = 'Just Right';
   String _tasteRating = 'Delicious';
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -25,13 +30,35 @@ class _RecipeFeedbackScreenState extends State<RecipeFeedbackScreen> {
     super.dispose();
   }
 
-  void _submitFeedback() {
+  Future<void> _submitFeedback() async {
     if (_rating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please rate this recipe')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please rate this recipe')));
       return;
     }
+
+    setState(() => _isSubmitting = true);
+    try {
+      await FirestoreService.saveRecipeFeedback(
+        recipeId: widget.recipeId ?? _recipeIdFromName(widget.recipeName),
+        recipeName: widget.recipeName,
+        rating: _rating,
+        taste: _tasteRating,
+        difficulty: _difficultyFeedback,
+        comment: _commentController.text,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not save feedback: $e')));
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
 
     // Show success message
     showDialog(
@@ -51,11 +78,7 @@ class _RecipeFeedbackScreenState extends State<RecipeFeedbackScreen> {
                   shape: BoxShape.circle,
                   color: Color(0xFF13EC5B),
                 ),
-                child: const Icon(
-                  Icons.check,
-                  color: Colors.white,
-                  size: 48,
-                ),
+                child: const Icon(Icons.check, color: Colors.white, size: 48),
               ),
               const SizedBox(height: 24),
               Text(
@@ -70,10 +93,7 @@ class _RecipeFeedbackScreenState extends State<RecipeFeedbackScreen> {
               Text(
                 'Your feedback helps us improve recipes',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
+                style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[600]),
               ),
               const SizedBox(height: 28),
               SizedBox(
@@ -103,6 +123,15 @@ class _RecipeFeedbackScreenState extends State<RecipeFeedbackScreen> {
         ),
       ),
     );
+  }
+
+  String _recipeIdFromName(String recipeName) {
+    final normalized = recipeName
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+    return normalized.isEmpty ? 'recipe' : normalized;
   }
 
   @override
@@ -220,20 +249,22 @@ class _RecipeFeedbackScreenState extends State<RecipeFeedbackScreen> {
                       spacing: 10,
                       runSpacing: 10,
                       children: ['Delicious', 'Good', 'Average', 'Not Good']
-                          .map((taste) => ChoiceChip(
-                                label: Text(taste),
-                                selected: _tasteRating == taste,
-                                onSelected: (selected) {
-                                  setState(() => _tasteRating = taste);
-                                },
-                                selectedColor: const Color(0xFF13EC5B),
-                                labelStyle: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w600,
-                                  color: _tasteRating == taste
-                                      ? Colors.white
-                                      : Colors.grey[700],
-                                ),
-                              ))
+                          .map(
+                            (taste) => ChoiceChip(
+                              label: Text(taste),
+                              selected: _tasteRating == taste,
+                              onSelected: (selected) {
+                                setState(() => _tasteRating = taste);
+                              },
+                              selectedColor: const Color(0xFF13EC5B),
+                              labelStyle: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                                color: _tasteRating == taste
+                                    ? Colors.white
+                                    : Colors.grey[700],
+                              ),
+                            ),
+                          )
                           .toList(),
                     ),
                   ],
@@ -270,21 +301,24 @@ class _RecipeFeedbackScreenState extends State<RecipeFeedbackScreen> {
                       spacing: 10,
                       runSpacing: 10,
                       children: ['Too Easy', 'Just Right', 'Too Hard']
-                          .map((difficulty) => ChoiceChip(
-                                label: Text(difficulty),
-                                selected: _difficultyFeedback == difficulty,
-                                onSelected: (selected) {
-                                  setState(
-                                      () => _difficultyFeedback = difficulty);
-                                },
-                                selectedColor: const Color(0xFF13EC5B),
-                                labelStyle: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w600,
-                                  color: _difficultyFeedback == difficulty
-                                      ? Colors.white
-                                      : Colors.grey[700],
-                                ),
-                              ))
+                          .map(
+                            (difficulty) => ChoiceChip(
+                              label: Text(difficulty),
+                              selected: _difficultyFeedback == difficulty,
+                              onSelected: (selected) {
+                                setState(
+                                  () => _difficultyFeedback = difficulty,
+                                );
+                              },
+                              selectedColor: const Color(0xFF13EC5B),
+                              labelStyle: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600,
+                                color: _difficultyFeedback == difficulty
+                                    ? Colors.white
+                                    : Colors.grey[700],
+                              ),
+                            ),
+                          )
                           .toList(),
                     ),
                   ],
@@ -322,20 +356,14 @@ class _RecipeFeedbackScreenState extends State<RecipeFeedbackScreen> {
                       maxLines: 5,
                       decoration: InputDecoration(
                         hintText: 'Share your thoughts about this recipe...',
-                        hintStyle: GoogleFonts.inter(
-                          color: Colors.grey[400],
-                        ),
+                        hintStyle: GoogleFonts.inter(color: Colors.grey[400]),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.grey[300]!,
-                          ),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.grey[300]!,
-                          ),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -346,9 +374,7 @@ class _RecipeFeedbackScreenState extends State<RecipeFeedbackScreen> {
                         ),
                         contentPadding: const EdgeInsets.all(16),
                       ),
-                      style: GoogleFonts.inter(
-                        color: const Color(0xFF243447),
-                      ),
+                      style: GoogleFonts.inter(color: const Color(0xFF243447)),
                     ),
                   ],
                 ),
@@ -366,15 +392,24 @@ class _RecipeFeedbackScreenState extends State<RecipeFeedbackScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: _submitFeedback,
-                  child: Text(
-                    'Submit Feedback',
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  ),
+                  onPressed: _isSubmitting ? null : _submitFeedback,
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          'Submit Feedback',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 32),

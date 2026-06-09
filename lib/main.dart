@@ -66,7 +66,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'NutriSeseSmart',
+      title: 'NutriSeeSmart',
       theme: ThemeData(
         useMaterial3: true,
         primaryColor: Colors.green,
@@ -98,6 +98,7 @@ class MyApp extends StatelessWidget {
                 prepTime: args['prepTime'] ?? 30,
                 imageUrl: args['imageUrl'],
                 mealType: args['mealType'],
+                recipeId: args['recipeId'],
               ),
             );
           }
@@ -132,7 +133,6 @@ class MyApp extends StatelessWidget {
     );
   }
 
-  //AAAAAAAAAAA
   Widget _buildPage(String routeName) {
     switch (routeName) {
       case '/login':

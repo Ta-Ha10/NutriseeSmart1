@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 import '../../utils/page_transitions.dart';
-import '../../utils/widgets.dart';
 import 'name_input_screen.dart';
 import 'birth_screen.dart';
 import 'gender_screen.dart';

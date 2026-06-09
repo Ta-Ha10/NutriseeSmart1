@@ -33,11 +33,32 @@ class _MealsScreenState extends State<MealsScreen> {
   };
   bool isServerAvailable = false;
   int selectedDayIndex = DateTime.now().weekday - 1;
+  int selectedWeekIndex = 0;
+  bool showWeekSelector = false;
 
   @override
   void initState() {
     super.initState();
     _loadUserDataAndRecipes();
+    // Set selectedWeekIndex to current week
+    final weekMondays = _getWeekMondays();
+    for (int i = 0; i < weekMondays.length; i++) {
+      if (_isCurrentWeek(weekMondays[i])) {
+        selectedWeekIndex = i;
+        break;
+      }
+    }
+    // Set selectedDayIndex to today
+    final today = DateTime.now();
+    final weekDays = _weekDays();
+    for (int i = 0; i < weekDays.length; i++) {
+      if (weekDays[i].year == today.year &&
+          weekDays[i].month == today.month &&
+          weekDays[i].day == today.day) {
+        selectedDayIndex = i;
+        break;
+      }
+    }
   }
 
   Future<void> _loadUserDataAndRecipes() async {
@@ -88,7 +109,9 @@ class _MealsScreenState extends State<MealsScreen> {
         ..proteinGrams = dietPlan['proteinGrams']?.toDouble()
         ..carbGrams = dietPlan['carbGrams']?.toDouble()
         ..fatGrams = dietPlan['fatGrams']?.toDouble()
-        ..tdee = dietPlan['tdee']?.toDouble();
+        ..tdee = dietPlan['tdee']?.toDouble()
+        ..likedRecipes = _stringList(data['likedRecipes'])
+        ..dislikedRecipes = _stringList(data['dislikedRecipes']);
 
       // Use stored daily calories, or fallback to TDEE/profile calculation.
       userData?.targetCalories ??= userData?.tdee;
@@ -151,36 +174,85 @@ class _MealsScreenState extends State<MealsScreen> {
     return List.generate(7, (index) => monday.add(Duration(days: index)));
   }
 
+  List<DateTime> _getWeekMondays() {
+    final today = DateTime.now();
+    final currentMonth = today.month;
+    final currentYear = today.year;
+
+    // Find the first day of the month
+    final firstDay = DateTime(currentYear, currentMonth, 1);
+
+    // Find the Monday of the week containing the first day
+    final firstMonday = firstDay.subtract(Duration(days: firstDay.weekday - 1));
+
+    final weeks = <DateTime>[];
+    var currentMonday = firstMonday;
+
+    // Generate weeks until we've covered the entire month
+    while (currentMonday.month <= currentMonth) {
+      final sunday = currentMonday.add(const Duration(days: 6));
+      // Include week if it has any days in the current month
+      if (currentMonday.month == currentMonth || sunday.month == currentMonth) {
+        weeks.add(currentMonday);
+      }
+      currentMonday = currentMonday.add(const Duration(days: 7));
+      // Break if we've gone past the month
+      if (currentMonday.month > currentMonth) break;
+    }
+
+    return weeks;
+  }
+
+  bool _isCurrentWeek(DateTime monday) {
+    final today = DateTime.now();
+    final currentMonday = today.subtract(Duration(days: today.weekday - 1));
+    return monday.year == currentMonday.year &&
+        monday.month == currentMonday.month &&
+        monday.day == currentMonday.day;
+  }
+
   Widget _buildWeekDaySelector() {
     final weekDays = _weekDays();
     final weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final today = DateTime.now();
 
     return SizedBox(
-      height: 92,
+      height: 70,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: weekDays.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 10),
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final date = weekDays[index];
           final isSelected = index == selectedDayIndex;
+          final isToday =
+              date.year == today.year &&
+              date.month == today.month &&
+              date.day == today.day;
+
           return GestureDetector(
             onTap: () => setState(() => selectedDayIndex = index),
             child: Container(
-              width: 68,
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+              width: 55,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.green : Colors.white,
-                borderRadius: BorderRadius.circular(24),
+                color: isSelected
+                    ? Colors.green
+                    : (isToday ? Colors.orange.shade50 : Colors.white),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
                 ],
                 border: Border.all(
-                  color: isSelected ? Colors.green : Colors.grey.shade200,
+                  color: isSelected
+                      ? Colors.green
+                      : (isToday
+                            ? Colors.orange.shade300
+                            : Colors.grey.shade200),
                 ),
               ),
               child: Column(
@@ -189,28 +261,130 @@ class _MealsScreenState extends State<MealsScreen> {
                   Text(
                     weekdayLabels[index],
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : Colors.black87,
+                      color: isSelected
+                          ? Colors.white
+                          : (isToday ? Colors.orange : Colors.black87),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 28,
+                    height: 28,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isSelected ? Colors.white : Colors.grey.shade100,
+                      color: isSelected
+                          ? Colors.white
+                          : (isToday
+                                ? Colors.orange.shade100
+                                : Colors.grey.shade100),
                     ),
                     child: Center(
                       child: Text(
                         '${date.day}',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.green : Colors.black87,
+                          color: isSelected
+                              ? Colors.green
+                              : (isToday ? Colors.orange : Colors.black87),
                         ),
                       ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  String _formatWeekDateRange(DateTime monday, DateTime sunday) {
+    return '${monday.day}-${sunday.day}';
+  }
+
+  Widget _buildWeekSelector() {
+    final weekMondays = _getWeekMondays();
+
+    // Calculate dynamic height based on number of weeks
+    // 2 weeks per row = 1 row (60px), 4 weeks = 2 rows (60px each = 120px), etc.
+    final numRows = (weekMondays.length + 1) ~/ 2;
+    final dynamicHeight =
+        (numRows * 65).toDouble() + ((numRows - 1) * 10).toDouble();
+
+    return SizedBox(
+      height: dynamicHeight,
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: weekMondays.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 2.8,
+        ),
+        itemBuilder: (context, index) {
+          final monday = weekMondays[index];
+          final sunday = monday.add(const Duration(days: 6));
+          final isSelected = index == selectedWeekIndex;
+          final isCurrentWeek = _isCurrentWeek(monday);
+
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                selectedWeekIndex = index;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Colors.green
+                    : (isCurrentWeek ? Colors.green.shade50 : Colors.white),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isSelected
+                      ? Colors.green
+                      : (isCurrentWeek
+                            ? Colors.green.shade200
+                            : Colors.grey.shade300),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    'W${index + 1}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected
+                          ? Colors.white
+                          : (isCurrentWeek ? Colors.green : Colors.black87),
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    _formatWeekDateRange(monday, sunday),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: isSelected
+                          ? Colors.white70
+                          : (isCurrentWeek
+                                ? Colors.green.shade600
+                                : Colors.grey.shade600),
                     ),
                   ),
                 ],
@@ -229,6 +403,8 @@ class _MealsScreenState extends State<MealsScreen> {
         mealType: mealType,
         targetCalories: targetCalories,
         topK: 15,
+        likedRecipes: userData?.likedRecipes ?? const [],
+        dislikedRecipes: userData?.dislikedRecipes ?? const [],
       ).timeout(const Duration(seconds: 10));
       setState(() {
         mealRecipes[mealType] = recipes;
@@ -303,6 +479,8 @@ class _MealsScreenState extends State<MealsScreen> {
           mealType: mealType,
           targetCalories: mealCalorieTargets[mealType] ?? 500,
           recipes: recipes,
+          likedRecipes: userData?.likedRecipes ?? const [],
+          dislikedRecipes: userData?.dislikedRecipes ?? const [],
           onMealSelected: (selectedRecipe) {
             setState(() {
               final current = loggedMeals[mealType] ?? [];
@@ -312,6 +490,14 @@ class _MealsScreenState extends State<MealsScreen> {
         ),
       ),
     );
+  }
+
+  List<String> _stringList(dynamic value) {
+    if (value is! List) return const [];
+    return value
+        .where((item) => item != null && item.toString().trim().isNotEmpty)
+        .map((item) => item.toString().trim())
+        .toList();
   }
 
   @override
@@ -343,10 +529,62 @@ class _MealsScreenState extends State<MealsScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              _buildWeekDaySelector(),
+              Column(
+                children: [
+                  // 4 Weeks Toggle
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '4 Weeks',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          showWeekSelector
+                              ? Icons.expand_less
+                              : Icons.expand_more,
+                          color: Colors.grey.shade600,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            showWeekSelector = !showWeekSelector;
+                          });
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  // Week Selector (Animated)
+                  if (showWeekSelector) ...[
+                    const SizedBox(height: 8),
+                    _buildWeekSelector(),
+                  ],
+                  const SizedBox(height: 16),
+                  // This Week Section
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'This Week',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildWeekDaySelector(),
+                    ],
+                  ),
+                ],
+              ),
               const SizedBox(height: 16),
-              CaloriesSummaryCard(userData: userData, loggedMeals: loggedMeals),
-              const SizedBox(height: 20),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: _refreshPage,
@@ -356,13 +594,25 @@ class _MealsScreenState extends State<MealsScreen> {
                         )
                       : errorMessage != null
                       ? _buildErrorView()
-                      : MealsList(
-                          mealRecipes: mealRecipes,
-                          loggedMeals: loggedMeals,
-                          mealCalorieTargets: mealCalorieTargets,
-                          isServerAvailable: isServerAvailable,
-                          mealRecipesRequested: mealRecipesRequested,
-                          onLogPressed: _handleMealLog,
+                      : SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: Column(
+                            children: [
+                              CaloriesSummaryCard(
+                                userData: userData,
+                                loggedMeals: loggedMeals,
+                              ),
+                              const SizedBox(height: 20),
+                              MealsList(
+                                mealRecipes: mealRecipes,
+                                loggedMeals: loggedMeals,
+                                mealCalorieTargets: mealCalorieTargets,
+                                isServerAvailable: isServerAvailable,
+                                mealRecipesRequested: mealRecipesRequested,
+                                onLogPressed: _handleMealLog,
+                              ),
+                            ],
+                          ),
                         ),
                 ),
               ),
@@ -540,7 +790,7 @@ class MealsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    return Column(
       children: [
         MealSection(
           title: 'Breakfast',
@@ -1207,6 +1457,8 @@ class RecipeSelectionPage extends StatefulWidget {
   final double targetCalories;
   final int topK;
   final List<Map<String, dynamic>> recipes;
+  final List<String> likedRecipes;
+  final List<String> dislikedRecipes;
   final void Function(Map<String, dynamic>) onMealSelected;
 
   const RecipeSelectionPage({
@@ -1214,6 +1466,8 @@ class RecipeSelectionPage extends StatefulWidget {
     required this.mealType,
     required this.targetCalories,
     required this.recipes,
+    this.likedRecipes = const [],
+    this.dislikedRecipes = const [],
     required this.onMealSelected,
     this.topK = 15,
   });
@@ -1245,6 +1499,8 @@ class _RecipeSelectionPageState extends State<RecipeSelectionPage> {
         mealType: widget.mealType,
         targetCalories: widget.targetCalories,
         topK: widget.topK,
+        likedRecipes: widget.likedRecipes,
+        dislikedRecipes: widget.dislikedRecipes,
       ).timeout(const Duration(seconds: 10));
 
       if (!mounted) return;

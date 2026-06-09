@@ -1,7 +1,7 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 
 class AIChatService {
-  static const String apiKey = 'AIzaSyBJM_uaiAhaS0ozn4e0C-BsBEyvKaObFZw';
+  static const String apiKey = 'AQ.Ab8RN6KTgkH1gcbHbyMw6iEhC2Yz97cMvkbRfR1tfsNcFakFLA';
   late final GenerativeModel _model;
 
   AIChatService() {

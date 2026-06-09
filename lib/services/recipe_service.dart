@@ -33,11 +33,14 @@ class RecipeService {
     required String mealType,
     required double targetCalories,
     int topK = 15,
+    List<String> likedRecipes = const [],
+    List<String> dislikedRecipes = const [],
   }) async {
     try {
       // Add random variation to target calories to ensure different results on refresh
       final random = Random();
-      final calorieVariation = random.nextInt(41) - 20; // Random value between -20 and +20
+      final calorieVariation =
+          random.nextInt(41) - 20; // Random value between -20 and +20
       final adjustedTargetCalories = targetCalories + calorieVariation;
 
       // Ensure adjusted calories stay within reasonable bounds
@@ -56,6 +59,8 @@ class RecipeService {
               'meal_type': mealType,
               'target_calories': finalTargetCalories,
               'top_k': topK,
+              'liked_recipes': likedRecipes,
+              'disliked_recipes': dislikedRecipes,
             }),
           )
           .timeout(timeout);

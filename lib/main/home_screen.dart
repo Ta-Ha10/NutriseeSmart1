@@ -115,7 +115,9 @@ class HomeBody extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         NutritionOverview(
-          targetCalories: _readNum(dietPlan, 'targetCalories')?.toDouble() ?? _readNum(dietPlan, 'tdee')?.toDouble(),
+          targetCalories:
+              _readNum(dietPlan, 'targetCalories')?.toDouble() ??
+              _readNum(dietPlan, 'tdee')?.toDouble(),
           carbs: _readNum(dietPlan, 'carbGrams')?.toDouble(),
           protein: _readNum(dietPlan, 'proteinGrams')?.toDouble(),
           fats: _readNum(dietPlan, 'fatGrams')?.toDouble(),
@@ -438,133 +440,277 @@ class WeeklyIntake extends StatelessWidget {
   }
 }
 
-class AppBottomNav extends StatelessWidget {
+class AppBottomNav extends StatefulWidget {
   const AppBottomNav({super.key});
+
+  @override
+  State<AppBottomNav> createState() => _AppBottomNavState();
+}
+
+class _AppBottomNavState extends State<AppBottomNav> {
+  static const Color _activeColor = Color(0xFF49B44E);
+  static const Color _inactiveColor = Color(0xFFD9D9D9);
+
+  int _selectedIndex = 2;
+
+  final List<_BottomNavItem> _items = const [
+    _BottomNavItem(icon: Icons.cottage_outlined, label: 'Home'),
+    _BottomNavItem(icon: Icons.book_outlined, label: 'Log'),
+    _BottomNavItem(icon: Icons.restaurant_menu_rounded, label: 'Meal'),
+    _BottomNavItem(icon: Icons.query_stats_outlined, label: 'Stats'),
+    _BottomNavItem(icon: Icons.settings_suggest_outlined, label: 'Settings'),
+  ];
+
+  void _selectItem(int index) {
+    setState(() => _selectedIndex = index);
+  }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      minimum: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+      minimum: const EdgeInsets.fromLTRB(14, 0, 14, 8),
       child: SizedBox(
-        height: 82,
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.bottomCenter,
-          children: [
-            Container(
-              height: 54,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x22000000),
-                    blurRadius: 12,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  _NavItem(
-                    icon: Icons.cottage_outlined,
-                    color: const Color(0xFF76C98A),
-                    onTap: () {},
-                  ),
-                  const _NavDivider(),
-                  _NavItem(
-                    icon: Icons.book_outlined,
-                    color: const Color(0xFFD9D9D9),
-                    onTap: () {},
-                  ),
-                  const _NavSpacer(),
-                  const _NavDivider(),
-                  _NavItem(
-                    icon: Icons.query_stats_outlined,
-                    color: const Color(0xFFD9D9D9),
-                    onTap: () {},
-                  ),
-                  const _NavDivider(),
-                  _NavItem(
-                    icon: Icons.settings_suggest_outlined,
-                    color: const Color(0xFFD9D9D9),
-                    onTap: () {},
-                  ),
-                ],
-              ),
-            ),
-            Positioned(
-              top: 0,
-              child: GestureDetector(
-                onTap: () {},
-                child: Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    color: Color(0xFF49B44E),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 4),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x22000000),
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.restaurant_menu_rounded,
-                    color: Colors.white,
-                    size: 42,
+        height: 112,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final itemWidth = width / _items.length;
+            final selectedCenterX = itemWidth * (_selectedIndex + 0.5);
+
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: 82,
+                  child: CustomPaint(
+                    painter: _BottomNavShapePainter(
+                      selectedCenterX: selectedCenterX,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ],
+                Positioned.fill(
+                  bottom: 0,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: List.generate(_items.length, (index) {
+                      final item = _items[index];
+                      final isSelected = index == _selectedIndex;
+
+                      return _NavItem(
+                        icon: item.icon,
+                        label: item.label,
+                        isSelected: isSelected,
+                        color: isSelected ? _activeColor : _inactiveColor,
+                        topPadding: isSelected ? 68 : 48,
+                        onTap: () => _selectItem(index),
+                      );
+                    }),
+                  ),
+                ),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  left: selectedCenterX - 34,
+                  top: 2,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _selectItem(_selectedIndex),
+                    child: Container(
+                      width: 68,
+                      height: 68,
+                      decoration: BoxDecoration(
+                        color: _activeColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xffF2EDE9),
+                          width: 8,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x22000000),
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        _items[_selectedIndex].icon,
+                        color: Colors.white,
+                        size: 31,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 }
 
+class _BottomNavItem {
+  final IconData icon;
+  final String label;
+
+  const _BottomNavItem({required this.icon, required this.label});
+}
+
 class _NavItem extends StatelessWidget {
   final IconData icon;
+  final String label;
+  final bool isSelected;
   final Color color;
+  final double topPadding;
   final VoidCallback onTap;
 
   const _NavItem({
     required this.icon,
+    required this.label,
+    required this.isSelected,
     required this.color,
+    required this.topPadding,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: Center(child: Icon(icon, color: color, size: 30)),
+        child: Padding(
+          padding: EdgeInsets.only(top: topPadding, bottom: 12),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (!isSelected) ...[
+                Icon(icon, color: color, size: 28),
+                const SizedBox(height: 4),
+              ],
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-class _NavDivider extends StatelessWidget {
-  const _NavDivider();
+class _BottomNavShapePainter extends CustomPainter {
+  final double selectedCenterX;
+  final Color color;
+
+  const _BottomNavShapePainter({
+    required this.selectedCenterX,
+    required this.color,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(width: 1, height: 54, color: const Color(0xFFEAEAEA));
+  void paint(Canvas canvas, Size size) {
+    final path = _buildPath(size);
+    canvas.drawShadow(path, const Color(0x26000000), 10, false);
+
+    final paint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = color;
+    canvas.drawPath(path, paint);
   }
-}
 
-class _NavSpacer extends StatelessWidget {
-  const _NavSpacer();
+  Path _buildPath(Size size) {
+    const cornerRadius = 20.0;
+    const topY = 14.0;
+    const notchRadius = 41.0;
+    final notchCenter = Offset(selectedCenterX, 36);
+    final isNearLeftEdge = selectedCenterX < 108;
+    final isNearRightEdge = selectedCenterX > size.width - 108;
+
+    if (isNearLeftEdge || isNearRightEdge) {
+      final body = Path()
+        ..addRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(0, topY, size.width, size.height - topY),
+            const Radius.circular(cornerRadius),
+          ),
+        );
+      final notch = Path()
+        ..addOval(Rect.fromCircle(center: notchCenter, radius: notchRadius));
+
+      return Path.combine(PathOperation.difference, body, notch);
+    }
+
+    final body = Path()
+      ..moveTo(cornerRadius, topY)
+      ..cubicTo(
+        size.width * 0.20,
+        topY - 12,
+        selectedCenterX - 104,
+        topY - 12,
+        selectedCenterX - 58,
+        topY,
+      )
+      ..cubicTo(
+        selectedCenterX - 38,
+        topY + 4,
+        selectedCenterX - 38,
+        topY + 38,
+        selectedCenterX,
+        topY + 38,
+      )
+      ..cubicTo(
+        selectedCenterX + 38,
+        topY + 38,
+        selectedCenterX + 38,
+        topY + 4,
+        selectedCenterX + 58,
+        topY,
+      )
+      ..cubicTo(
+        selectedCenterX + 104,
+        topY - 12,
+        size.width * 0.80,
+        topY - 12,
+        size.width - cornerRadius,
+        topY,
+      )
+      ..quadraticBezierTo(size.width, topY + 2, size.width, topY + cornerRadius)
+      ..lineTo(size.width, size.height - cornerRadius)
+      ..quadraticBezierTo(
+        size.width,
+        size.height,
+        size.width - cornerRadius,
+        size.height,
+      )
+      ..lineTo(cornerRadius, size.height)
+      ..quadraticBezierTo(0, size.height, 0, size.height - cornerRadius)
+      ..lineTo(0, topY + cornerRadius)
+      ..quadraticBezierTo(0, topY + 2, cornerRadius, topY)
+      ..close();
+
+    final notch = Path()
+      ..addOval(Rect.fromCircle(center: notchCenter, radius: notchRadius));
+
+    return Path.combine(PathOperation.difference, body, notch);
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return const SizedBox(width: 70);
+  bool shouldRepaint(covariant _BottomNavShapePainter oldDelegate) {
+    return oldDelegate.selectedCenterX != selectedCenterX ||
+        oldDelegate.color != color;
   }
 }
 

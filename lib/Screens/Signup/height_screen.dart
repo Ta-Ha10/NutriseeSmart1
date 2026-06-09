@@ -50,21 +50,7 @@ class _HeightScreenState extends State<HeightScreen> {
     );
   }
 
-  String get _ftIn {
-    if (_heightCm == null) return "__'__\"";
-    final totalInches = _heightCm! / 2.54;
-    final feet = totalInches ~/ 12;
-    final inches = (totalInches % 12).round();
-    return "${feet}\'${inches}\"";
-  }
 
-  void _onTextChanged(String v) {
-    final parsed = int.tryParse(v);
-    if (parsed != null) {
-      final clamped = parsed.clamp(100, 220).toDouble();
-      setState(() => _heightCm = clamped);
-    }
-  }
 
   @override
   void dispose() {

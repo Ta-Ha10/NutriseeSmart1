@@ -115,7 +115,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
     final goalDate = DateTime.now().add(const Duration(days: 180));
     final monthsAway = goalDate.month;
     final yearAway = goalDate.year;
-    final weightDifference = (userData.currentWeight ?? 0) - (userData.goalWeight ?? 0);
+
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFBFC),
