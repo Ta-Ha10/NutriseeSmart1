@@ -21,6 +21,9 @@ class UserData {
   String? googleAccessToken;
   bool isGoogleSignIn = false;
 
+  // Telegram linking
+  String? telegramChatId;
+
   // Additional signup fields
   List<String>? workoutDays; // e.g., ['Monday', 'Wednesday', 'Friday']
   Map<String, TimeOfDay>? mealTimes; // e.g., {'breakfast': TimeOfDay(hour: 8, minute: 0), ...}
@@ -182,6 +185,11 @@ class UserData {
       personalData['email'] = email;
     }
 
+    // Only include telegramChatId if linked
+    if (telegramChatId != null && telegramChatId!.isNotEmpty) {
+      personalData['telegramChatId'] = telegramChatId;
+    }
+
     return _removeNullValues({
       'personalData': personalData,
       'dietPlan': {
@@ -258,6 +266,7 @@ class UserData {
     proteinGrams = null;
     fatGrams = null;
     carbGrams = null;
+    telegramChatId = null;
   }
 }
 

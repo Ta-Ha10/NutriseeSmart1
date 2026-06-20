@@ -29,7 +29,7 @@ class CookingTimerScreen extends StatefulWidget {
 }
 
 class _CookingTimerScreenState extends State<CookingTimerScreen> {
-  late Timer _timer;
+  Timer? _timer;
   int _remainingSeconds = 0;
   int _currentStepIndex = 0;
   List<bool> _completedSteps = [];
@@ -41,11 +41,12 @@ class _CookingTimerScreenState extends State<CookingTimerScreen> {
   void initState() {
     super.initState();
     _remainingSeconds = (widget.prepTime * 60).toInt();
-    _completedSteps = List.filled(widget.instructions.length, false);
+    _setSteps(widget.instructions);
     _fetchRecipeStepsFromAI();
   }
 
   Future<void> _fetchRecipeStepsFromAI() async {
+    if (!mounted) return;
     setState(() => _isLoadingSteps = true);
     try {
       final aiService = AIChatService();
@@ -55,19 +56,22 @@ class _CookingTimerScreenState extends State<CookingTimerScreen> {
         language: 'en',
       );
 
+      if (!mounted) return;
       // Parse the response
       _parseAIResponse(response);
     } catch (e) {
       debugPrint('Error fetching recipe steps: $e');
+      if (!mounted) return;
       // Fall back to provided instructions
       setState(() {
-        _aiGeneratedSteps = widget.instructions;
+        _setSteps(widget.instructions);
         _isLoadingSteps = false;
       });
     }
   }
 
   void _parseAIResponse(String response) {
+    if (!mounted) return;
     try {
       // Extract instructions
       final instructionsMatch = RegExp(
@@ -75,49 +79,80 @@ class _CookingTimerScreenState extends State<CookingTimerScreen> {
       ).firstMatch(response);
       if (instructionsMatch != null) {
         final instructionsText = instructionsMatch.group(1) ?? '';
-        _aiGeneratedSteps = instructionsText
+        final parsedSteps = instructionsText
             .split('\n')
             .where((line) => line.trim().isNotEmpty)
             .map((line) => line.replaceFirst(RegExp(r'^\d+\.\s*'), '').trim())
             .toList();
+        setState(() {
+          _setSteps(parsedSteps);
+          _isLoadingSteps = false;
+        });
       } else {
-        _aiGeneratedSteps = widget.instructions;
+        setState(() {
+          _setSteps(widget.instructions);
+          _isLoadingSteps = false;
+        });
       }
-
-      setState(() {
-        _completedSteps = List.filled(_aiGeneratedSteps.length, false);
-        _isLoadingSteps = false;
-      });
     } catch (e) {
       debugPrint('Error parsing AI response: $e');
+      if (!mounted) return;
       setState(() {
-        _aiGeneratedSteps = widget.instructions;
+        _setSteps(widget.instructions);
         _isLoadingSteps = false;
       });
+    }
+  }
+
+  void _setSteps(List<String> steps) {
+    final cleanedSteps = steps
+        .map((step) => step.trim())
+        .where((step) => step.isNotEmpty)
+        .toList();
+    _aiGeneratedSteps = cleanedSteps.isEmpty
+        ? const ['Follow the recipe instructions and cook until complete.']
+        : cleanedSteps;
+    _completedSteps = List.filled(_aiGeneratedSteps.length, false);
+    if (_currentStepIndex >= _aiGeneratedSteps.length) {
+      _currentStepIndex = _aiGeneratedSteps.length - 1;
+    }
+    if (_currentStepIndex < 0) {
+      _currentStepIndex = 0;
     }
   }
 
   void _toggleTimer() {
     if (_isRunning) {
-      _timer.cancel();
-      setState(() => _isRunning = false);
+      _cancelTimer();
+      if (!mounted) return;
+      setState(() {});
     } else {
       setState(() => _isRunning = true);
       _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (!mounted) {
+          _cancelTimer();
+          return;
+        }
+        var shouldShowCompletion = false;
         setState(() {
           if (_remainingSeconds > 0) {
             _remainingSeconds--;
           } else {
-            _timer.cancel();
+            _timer?.cancel();
+            _timer = null;
             _isRunning = false;
-            _showCompletionDialog();
+            shouldShowCompletion = true;
           }
         });
+        if (shouldShowCompletion) {
+          _showCompletionDialog();
+        }
       });
     }
   }
 
   void _showCompletionDialog() {
+    if (!mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -192,18 +227,22 @@ class _CookingTimerScreenState extends State<CookingTimerScreen> {
   }
 
   void _markStepComplete(int index) {
+    if (!mounted) return;
+    if (index < 0 || index >= _completedSteps.length) return;
     setState(() {
       _completedSteps[index] = !_completedSteps[index];
     });
   }
 
   void _nextStep() {
+    if (!mounted) return;
     if (_currentStepIndex < _aiGeneratedSteps.length - 1) {
       setState(() => _currentStepIndex++);
     }
   }
 
   void _previousStep() {
+    if (!mounted) return;
     if (_currentStepIndex > 0) {
       setState(() => _currentStepIndex--);
     }
@@ -217,10 +256,14 @@ class _CookingTimerScreenState extends State<CookingTimerScreen> {
 
   @override
   void dispose() {
-    if (_isRunning) {
-      _timer.cancel();
-    }
+    _cancelTimer();
     super.dispose();
+  }
+
+  void _cancelTimer() {
+    _timer?.cancel();
+    _timer = null;
+    _isRunning = false;
   }
 
   @override
@@ -232,9 +275,7 @@ class _CookingTimerScreenState extends State<CookingTimerScreen> {
 
     return WillPopScope(
       onWillPop: () async {
-        if (_isRunning) {
-          _timer.cancel();
-        }
+        _cancelTimer();
         return true;
       },
       child: Scaffold(
@@ -246,9 +287,7 @@ class _CookingTimerScreenState extends State<CookingTimerScreen> {
             icon: const Icon(Icons.arrow_back_ios),
             color: Colors.black,
             onPressed: () {
-              if (_isRunning) {
-                _timer.cancel();
-              }
+              _cancelTimer();
               Navigator.pop(context);
             },
           ),

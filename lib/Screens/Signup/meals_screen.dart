@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../widgets/components.dart';
 import '../../utils/user_data.dart';
+import '../../services/daily_nutrition_service.dart';
 import '../../services/recipe_service.dart';
 import '../recipe_details_screen.dart';
 
@@ -125,6 +126,7 @@ class _MealsScreenState extends State<MealsScreen> {
       mealCalorieTargets = RecipeService.getMealCalorieTargets(
         safeTargetCalories,
       );
+      await _loadTodayLoggedMeals(user.uid);
 
       // Check server availability first
       await _checkServerAvailability();
@@ -148,6 +150,61 @@ class _MealsScreenState extends State<MealsScreen> {
       debugPrint('Server availability check failed: $e');
       isServerAvailable = false;
     }
+  }
+
+  Future<void> _loadTodayLoggedMeals(String uid) async {
+    final log = await DailyNutritionService.getLog(
+      uid: uid,
+      targetCalories: userData?.targetCalories ?? userData?.tdee ?? 0,
+      targetCarbs: userData?.carbGrams ?? 0,
+      targetProtein: userData?.proteinGrams ?? 0,
+      targetFat: userData?.fatGrams ?? 0,
+    );
+
+    final nextLoggedMeals = {
+      'breakfast': <Map<String, dynamic>>[],
+      'lunch': <Map<String, dynamic>>[],
+      'dinner': <Map<String, dynamic>>[],
+      'snacks': <Map<String, dynamic>>[],
+    };
+
+    for (final meal in log.meals) {
+      nextLoggedMeals.putIfAbsent(
+        meal.mealType,
+        () => <Map<String, dynamic>>[],
+      );
+      nextLoggedMeals[meal.mealType]!.add({
+        'recipe_id': meal.recipeId,
+        'recipe_name': meal.recipeName,
+        'image_url': meal.imageUrl,
+        'nutrition': {
+          'calories': meal.calories,
+          'carbs': meal.carbs,
+          'protein': meal.protein,
+          'fat': meal.fat,
+        },
+      });
+    }
+
+    loggedMeals = nextLoggedMeals;
+  }
+
+  Future<void> _logSelectedMeal(
+    String mealType,
+    Map<String, dynamic> recipe,
+  ) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    await DailyNutritionService.logMeal(
+      uid: user.uid,
+      mealType: mealType,
+      recipe: recipe,
+      targetCalories: userData?.targetCalories ?? userData?.tdee ?? 0,
+      targetCarbs: userData?.carbGrams ?? 0,
+      targetProtein: userData?.proteinGrams ?? 0,
+      targetFat: userData?.fatGrams ?? 0,
+    );
   }
 
   String _formatDateLabel(DateTime date) {
@@ -356,7 +413,7 @@ class _MealsScreenState extends State<MealsScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -481,7 +538,8 @@ class _MealsScreenState extends State<MealsScreen> {
           recipes: recipes,
           likedRecipes: userData?.likedRecipes ?? const [],
           dislikedRecipes: userData?.dislikedRecipes ?? const [],
-          onMealSelected: (selectedRecipe) {
+          onMealSelected: (selectedRecipe) async {
+            await _logSelectedMeal(mealType, selectedRecipe);
             setState(() {
               final current = loggedMeals[mealType] ?? [];
               loggedMeals[mealType] = List.from(current)..add(selectedRecipe);

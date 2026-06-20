@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../utils/user_data.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/preference_analytics_service.dart';
+import '../../services/recommendation_service.dart';
 
 class LoadingScreen extends StatefulWidget {
   final UserData userData;
@@ -85,6 +88,17 @@ class _LoadingScreenState extends State<LoadingScreen>
 
   Future<void> _performCalculation() async {
     widget.userData.calculateMetrics();
+
+    // Initialize user preferences
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await PreferenceAnalyticsService.initializeUserPreferences(user.uid);
+        await RecommendationService.getRecommendedRecipes(user.uid);
+      }
+    } catch (e) {
+      print('Error initializing preferences: $e');
+    }
 
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;

@@ -4,8 +4,12 @@ import 'package:gap/gap.dart';
 import 'package:nutriseesmart1/main/workout_screen.dart';
 import 'package:nutriseesmart1/main/menu_screen.dart';
 
+import '../Screens/daily_nutrition_summary_screen.dart';
 import '../Screens/Signup/meals_screen.dart';
+import '../Screens/telegram_linking_screen.dart';
+import '../services/daily_nutrition_service.dart';
 import '../services/firestore_service.dart';
+import '../utils/models/daily_nutrition_log.dart';
 import '../widgets/components.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -105,6 +109,14 @@ class HomeBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final personalData = _readMap(userData, 'personalData');
     final dietPlan = _readMap(userData, 'dietPlan');
+    final user = FirebaseAuth.instance.currentUser;
+    final targetCalories =
+        _readNum(dietPlan, 'targetCalories')?.toDouble() ??
+        _readNum(dietPlan, 'tdee')?.toDouble() ??
+        0;
+    final targetCarbs = _readNum(dietPlan, 'carbGrams')?.toDouble() ?? 0;
+    final targetProtein = _readNum(dietPlan, 'proteinGrams')?.toDouble() ?? 0;
+    final targetFats = _readNum(dietPlan, 'fatGrams')?.toDouble() ?? 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,14 +126,40 @@ class HomeBody extends StatelessWidget {
           onMenuTap: onMenuTap,
         ),
         const SizedBox(height: 20),
-        NutritionOverview(
-          targetCalories:
-              _readNum(dietPlan, 'targetCalories')?.toDouble() ??
-              _readNum(dietPlan, 'tdee')?.toDouble(),
-          carbs: _readNum(dietPlan, 'carbGrams')?.toDouble(),
-          protein: _readNum(dietPlan, 'proteinGrams')?.toDouble(),
-          fats: _readNum(dietPlan, 'fatGrams')?.toDouble(),
-        ),
+        if (user == null)
+          NutritionOverview(
+            targetCalories: targetCalories,
+            remainingCalories: targetCalories,
+            carbs: targetCarbs,
+            remainingCarbs: targetCarbs,
+            protein: targetProtein,
+            remainingProtein: targetProtein,
+            fats: targetFats,
+            remainingFats: targetFats,
+          )
+        else
+          StreamBuilder<DailyNutritionLog>(
+            stream: DailyNutritionService.watchTodayLog(
+              uid: user.uid,
+              targetCalories: targetCalories,
+              targetCarbs: targetCarbs,
+              targetProtein: targetProtein,
+              targetFat: targetFats,
+            ),
+            builder: (context, snapshot) {
+              final log = snapshot.data;
+              return NutritionOverview(
+                targetCalories: targetCalories,
+                remainingCalories: log?.remainingCalories ?? targetCalories,
+                carbs: targetCarbs,
+                remainingCarbs: log?.remainingCarbs ?? targetCarbs,
+                protein: targetProtein,
+                remainingProtein: log?.remainingProtein ?? targetProtein,
+                fats: targetFats,
+                remainingFats: log?.remainingFat ?? targetFats,
+              );
+            },
+          ),
         const SizedBox(height: 20),
         const ActionButtons(),
         const SizedBox(height: 20),
@@ -184,12 +222,14 @@ class HomeHeader extends StatelessWidget {
 
 class CalorieCard extends StatelessWidget {
   final double? targetCalories;
+  final double? remainingCalories;
 
-  const CalorieCard({super.key, this.targetCalories});
+  const CalorieCard({super.key, this.targetCalories, this.remainingCalories});
 
   @override
   Widget build(BuildContext context) {
     final goalCalories = (targetCalories ?? 0).round();
+    final remaining = (remainingCalories ?? targetCalories ?? 0).round();
     return Container(
       width: 200,
       height: 200,
@@ -219,7 +259,7 @@ class CalorieCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              goalCalories > 0 ? '$goalCalories' : '--',
+              remaining > 0 ? '$remaining' : '--',
               style: const TextStyle(
                 fontSize: 34,
                 fontWeight: FontWeight.w700,
@@ -244,16 +284,24 @@ class CalorieCard extends StatelessWidget {
 
 class NutritionOverview extends StatelessWidget {
   final double? targetCalories;
+  final double? remainingCalories;
   final double? carbs;
+  final double? remainingCarbs;
   final double? protein;
+  final double? remainingProtein;
   final double? fats;
+  final double? remainingFats;
 
   const NutritionOverview({
     super.key,
     this.targetCalories,
+    this.remainingCalories,
     this.carbs,
+    this.remainingCarbs,
     this.protein,
+    this.remainingProtein,
     this.fats,
+    this.remainingFats,
   });
 
   @override
@@ -267,9 +315,19 @@ class NutritionOverview extends StatelessWidget {
       ),
       child: Column(
         children: [
-          CalorieCard(targetCalories: targetCalories),
+          CalorieCard(
+            targetCalories: targetCalories,
+            remainingCalories: remainingCalories,
+          ),
           const SizedBox(height: 30),
-          MacrosRow(carbs: carbs, protein: protein, fats: fats),
+          MacrosRow(
+            carbs: carbs,
+            remainingCarbs: remainingCarbs,
+            protein: protein,
+            remainingProtein: remainingProtein,
+            fats: fats,
+            remainingFats: remainingFats,
+          ),
         ],
       ),
     );
@@ -278,10 +336,21 @@ class NutritionOverview extends StatelessWidget {
 
 class MacrosRow extends StatelessWidget {
   final double? carbs;
+  final double? remainingCarbs;
   final double? protein;
+  final double? remainingProtein;
   final double? fats;
+  final double? remainingFats;
 
-  const MacrosRow({super.key, this.carbs, this.protein, this.fats});
+  const MacrosRow({
+    super.key,
+    this.carbs,
+    this.remainingCarbs,
+    this.protein,
+    this.remainingProtein,
+    this.fats,
+    this.remainingFats,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -290,17 +359,17 @@ class MacrosRow extends StatelessWidget {
       children: [
         MacroCard(
           title: 'Carbs',
-          amountLabel: _macroLabel(carbs),
+          amountLabel: _macroLabel(remainingCarbs, carbs),
           accentColor: const Color(0xFF3B82F6),
         ),
         MacroCard(
           title: 'Protein',
-          amountLabel: _macroLabel(protein),
+          amountLabel: _macroLabel(remainingProtein, protein),
           accentColor: const Color(0xFF16A34A),
         ),
         MacroCard(
           title: 'Fats',
-          amountLabel: _macroLabel(fats),
+          amountLabel: _macroLabel(remainingFats, fats),
           accentColor: const Color(0xFFEAB308),
         ),
       ],
@@ -313,34 +382,56 @@ class ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            onPressed: () {
-              // Navigate to the meals screen
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const MealsScreen()));
-            },
-            icon: const Icon(Icons.restaurant),
-            label: const Text('Add Meal'),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                onPressed: () {
+                  // Navigate to the meals screen
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => const MealsScreen()));
+                },
+                icon: const Icon(Icons.restaurant),
+                label: const Text('Add Meal'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                onPressed: () {
+                  // Navigate to the workout screen
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => const WorkoutScreen()));
+                },
+                icon: const Icon(Icons.fitness_center),
+                label: const Text('Workout'),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            onPressed: () {
-              // Navigate to the workout screen
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const WorkoutScreen()));
-            },
-            icon: const Icon(Icons.fitness_center),
-            label: const Text('Workout'),
-          ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[600]),
+                onPressed: () {
+                  // Navigate to Telegram setup screen
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => const TelegramLinkingScreen()));
+                },
+                icon: const Icon(Icons.telegram),
+                label: const Text('Telegram Bot'),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -463,6 +554,15 @@ class _AppBottomNavState extends State<AppBottomNav> {
 
   void _selectItem(int index) {
     setState(() => _selectedIndex = index);
+    if (_items[index].label == 'Stats') {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const DailyNutritionSummaryScreen()),
+      );
+    } else if (_items[index].label == 'Meal') {
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const MealsScreen()));
+    }
   }
 
   @override
@@ -737,9 +837,10 @@ num? _readNum(Map<String, dynamic>? source, String key) {
   return value is num ? value : null;
 }
 
-String _macroLabel(double? grams) {
-  final rounded = grams?.round() ?? 0;
-  return '0/${rounded > 0 ? rounded : '--'}g';
+String _macroLabel(double? remainingGrams, double? targetGrams) {
+  final remaining = remainingGrams?.round() ?? 0;
+  final target = targetGrams?.round() ?? 0;
+  return '${remaining > 0 ? remaining : 0}/${target > 0 ? target : '--'}g';
 }
 
 String _formatCalories(int value) {
