@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gap/gap.dart';
-import 'package:nutriseesmart1/main/workout_screen.dart';
 import 'package:nutriseesmart1/main/menu_screen.dart';
 
-import '../Screens/daily_nutrition_summary_screen.dart';
-import '../Screens/Signup/meals_screen.dart';
-import '../Screens/telegram_linking_screen.dart';
 import '../services/daily_nutrition_service.dart';
 import '../services/firestore_service.dart';
+import '../services/water_intake_service.dart';
 import '../utils/models/daily_nutrition_log.dart';
+import '../utils/models/daily_water_log.dart';
+import '../widgets/app_bottom_nav.dart';
 import '../widgets/components.dart';
+import 'water_tracker_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -41,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF2EDE9),
-      bottomNavigationBar: const AppBottomNav(),
+      bottomNavigationBar: const AppBottomNav(selectedIndex: 2),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -117,6 +118,8 @@ class HomeBody extends StatelessWidget {
     final targetCarbs = _readNum(dietPlan, 'carbGrams')?.toDouble() ?? 0;
     final targetProtein = _readNum(dietPlan, 'proteinGrams')?.toDouble() ?? 0;
     final targetFats = _readNum(dietPlan, 'fatGrams')?.toDouble() ?? 0;
+    final currentWeight = _readNum(personalData, 'currentWeight');
+    final waterGoalMl = _waterGoalFromWeight(currentWeight);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,7 +166,7 @@ class HomeBody extends StatelessWidget {
         const SizedBox(height: 20),
         const ActionButtons(),
         const SizedBox(height: 20),
-        const WeeklyIntake(),
+        WaterIntakeGraph(uid: user?.uid, targetMl: waterGoalMl),
       ],
     );
   }
@@ -390,45 +393,14 @@ class ActionButtons extends StatelessWidget {
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                 onPressed: () {
-                  // Navigate to the meals screen
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => const MealsScreen()));
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const WaterTrackerScreen(),
+                    ),
+                  );
                 },
-                icon: const Icon(Icons.restaurant),
-                label: const Text('Add Meal'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                onPressed: () {
-                  // Navigate to the workout screen
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => const WorkoutScreen()));
-                },
-                icon: const Icon(Icons.fitness_center),
-                label: const Text('Workout'),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[600]),
-                onPressed: () {
-                  // Navigate to Telegram setup screen
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: (_) => const TelegramLinkingScreen()));
-                },
-                icon: const Icon(Icons.telegram),
-                label: const Text('Telegram Bot'),
+                icon: const Icon(Icons.water_drop_outlined),
+                label: const Text('Water Tracker'),
               ),
             ),
           ],
@@ -438,379 +410,170 @@ class ActionButtons extends StatelessWidget {
   }
 }
 
-class WeeklyIntake extends StatelessWidget {
-  const WeeklyIntake({super.key});
+class WaterIntakeGraph extends StatelessWidget {
+  final String? uid;
+  final int targetMl;
+
+  const WaterIntakeGraph({
+    super.key,
+    required this.uid,
+    required this.targetMl,
+  });
 
   @override
   Widget build(BuildContext context) {
-    const weeklyValues = [0.18, 0.32, 0.28, 0.52, 0.46, 0.68, 0.61];
-    const weekLabels = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+    if (uid == null) {
+      return const Expanded(
+        child: Center(
+          child: Text(
+            'Sign in to view your water history.',
+            style: TextStyle(color: Colors.black54),
+          ),
+        ),
+      );
+    }
 
     return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text(
-                'Weekly Intake',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Text('View Report', style: TextStyle(color: Colors.green)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(14, 18, 14, 10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.green),
-                color: Colors.white,
-              ),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: List.generate(weeklyValues.length, (index) {
-                        final isHighlighted = weekLabels[index] == 'Sa';
-                        return Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Expanded(
-                                  child: Align(
-                                    alignment: Alignment.bottomCenter,
-                                    child: AnimatedContainer(
-                                      duration: const Duration(
-                                        milliseconds: 600,
-                                      ),
-                                      curve: Curves.easeOutCubic,
-                                      width: 18,
-                                      height: 180 * weeklyValues[index],
-                                      decoration: BoxDecoration(
-                                        color: isHighlighted
-                                            ? const Color(0xFF4CAF50)
-                                            : const Color(0xFFBFE8C3),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  weekLabels[index],
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: isHighlighted
-                                        ? FontWeight.w700
-                                        : FontWeight.w500,
-                                    color: isHighlighted
-                                        ? const Color(0xFF4CAF50)
-                                        : Colors.black87,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
+      child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .collection('dailyWater')
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.green),
+            );
+          }
+
+          final logsByDate = <String, DailyWaterLog>{
+            for (final doc in snapshot.data?.docs ?? const [])
+              doc.id: DailyWaterLog.fromMap(doc.id, doc.data()),
+          };
+          final weekStart = DateTime.now().subtract(const Duration(days: 6));
+          final days = List.generate(
+            7,
+            (index) => weekStart.add(Duration(days: index)),
+          );
+          final maxValue = [
+            targetMl,
+            ...logsByDate.values.map((log) => log.consumedMl),
+          ].fold<int>(1, (max, value) => value > max ? value : max);
+          const labels = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+          final todayKey = WaterIntakeService.dateString();
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  Text(
+                    'Water Intake',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
+                  Text('Last 7 Days', style: TextStyle(color: Colors.green)),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class AppBottomNav extends StatefulWidget {
-  const AppBottomNav({super.key});
-
-  @override
-  State<AppBottomNav> createState() => _AppBottomNavState();
-}
-
-class _AppBottomNavState extends State<AppBottomNav> {
-  static const Color _activeColor = Color(0xFF49B44E);
-  static const Color _inactiveColor = Color(0xFFD9D9D9);
-
-  int _selectedIndex = 2;
-
-  final List<_BottomNavItem> _items = const [
-    _BottomNavItem(icon: Icons.cottage_outlined, label: 'Home'),
-    _BottomNavItem(icon: Icons.book_outlined, label: 'Log'),
-    _BottomNavItem(icon: Icons.restaurant_menu_rounded, label: 'Meal'),
-    _BottomNavItem(icon: Icons.query_stats_outlined, label: 'Stats'),
-    _BottomNavItem(icon: Icons.settings_suggest_outlined, label: 'Settings'),
-  ];
-
-  void _selectItem(int index) {
-    setState(() => _selectedIndex = index);
-    if (_items[index].label == 'Stats') {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const DailyNutritionSummaryScreen()),
-      );
-    } else if (_items[index].label == 'Meal') {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const MealsScreen()));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      minimum: const EdgeInsets.fromLTRB(14, 0, 14, 8),
-      child: SizedBox(
-        height: 112,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final itemWidth = width / _items.length;
-            final selectedCenterX = itemWidth * (_selectedIndex + 0.5);
-
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: 82,
-                  child: CustomPaint(
-                    painter: _BottomNavShapePainter(
-                      selectedCenterX: selectedCenterX,
-                      color: Colors.white,
-                    ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(14, 18, 14, 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.green),
+                    color: Colors.white,
                   ),
-                ),
-                Positioned.fill(
-                  bottom: 0,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: List.generate(_items.length, (index) {
-                      final item = _items[index];
-                      final isSelected = index == _selectedIndex;
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: List.generate(days.length, (index) {
+                            final day = days[index];
+                            final key = WaterIntakeService.dateString(day);
+                            final log = logsByDate[key];
+                            final consumed = log?.consumedMl ?? 0;
+                            final isToday = key == todayKey;
+                            final barHeight =
+                                180 *
+                                (maxValue == 0 ? 0.0 : consumed / maxValue);
 
-                      return _NavItem(
-                        icon: item.icon,
-                        label: item.label,
-                        isSelected: isSelected,
-                        color: isSelected ? _activeColor : _inactiveColor,
-                        topPadding: isSelected ? 68 : 48,
-                        onTap: () => _selectItem(index),
-                      );
-                    }),
-                  ),
-                ),
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 260),
-                  curve: Curves.easeOutCubic,
-                  left: selectedCenterX - 34,
-                  top: 2,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => _selectItem(_selectedIndex),
-                    child: Container(
-                      width: 68,
-                      height: 68,
-                      decoration: BoxDecoration(
-                        color: _activeColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xffF2EDE9),
-                          width: 8,
+                            return Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Expanded(
+                                      child: Align(
+                                        alignment: Alignment.bottomCenter,
+                                        child: AnimatedContainer(
+                                          duration: const Duration(
+                                            milliseconds: 600,
+                                          ),
+                                          curve: Curves.easeOutCubic,
+                                          width: 18,
+                                          height: barHeight,
+                                          decoration: BoxDecoration(
+                                            color: isToday
+                                                ? const Color(0xFF49B44E)
+                                                : const Color(0xFFBFE8C3),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      labels[index],
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: isToday
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
+                                        color: isToday
+                                            ? const Color(0xFF49B44E)
+                                            : Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '$consumed ml',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
                         ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x22000000),
-                            blurRadius: 10,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
                       ),
-                      child: Icon(
-                        _items[_selectedIndex].icon,
-                        color: Colors.white,
-                        size: 31,
+                      const SizedBox(height: 8),
+                      Text(
+                        'Goal $targetMl ml per day',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _BottomNavItem {
-  final IconData icon;
-  final String label;
-
-  const _BottomNavItem({required this.icon, required this.label});
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final Color color;
-  final double topPadding;
-  final VoidCallback onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.isSelected,
-    required this.color,
-    required this.topPadding,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Padding(
-          padding: EdgeInsets.only(top: topPadding, bottom: 12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (!isSelected) ...[
-                Icon(icon, color: color, size: 28),
-                const SizedBox(height: 4),
-              ],
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
-  }
-}
-
-class _BottomNavShapePainter extends CustomPainter {
-  final double selectedCenterX;
-  final Color color;
-
-  const _BottomNavShapePainter({
-    required this.selectedCenterX,
-    required this.color,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final path = _buildPath(size);
-    canvas.drawShadow(path, const Color(0x26000000), 10, false);
-
-    final paint = Paint()
-      ..style = PaintingStyle.fill
-      ..color = color;
-    canvas.drawPath(path, paint);
-  }
-
-  Path _buildPath(Size size) {
-    const cornerRadius = 20.0;
-    const topY = 14.0;
-    const notchRadius = 41.0;
-    final notchCenter = Offset(selectedCenterX, 36);
-    final isNearLeftEdge = selectedCenterX < 108;
-    final isNearRightEdge = selectedCenterX > size.width - 108;
-
-    if (isNearLeftEdge || isNearRightEdge) {
-      final body = Path()
-        ..addRRect(
-          RRect.fromRectAndRadius(
-            Rect.fromLTWH(0, topY, size.width, size.height - topY),
-            const Radius.circular(cornerRadius),
-          ),
-        );
-      final notch = Path()
-        ..addOval(Rect.fromCircle(center: notchCenter, radius: notchRadius));
-
-      return Path.combine(PathOperation.difference, body, notch);
-    }
-
-    final body = Path()
-      ..moveTo(cornerRadius, topY)
-      ..cubicTo(
-        size.width * 0.20,
-        topY - 12,
-        selectedCenterX - 104,
-        topY - 12,
-        selectedCenterX - 58,
-        topY,
-      )
-      ..cubicTo(
-        selectedCenterX - 38,
-        topY + 4,
-        selectedCenterX - 38,
-        topY + 38,
-        selectedCenterX,
-        topY + 38,
-      )
-      ..cubicTo(
-        selectedCenterX + 38,
-        topY + 38,
-        selectedCenterX + 38,
-        topY + 4,
-        selectedCenterX + 58,
-        topY,
-      )
-      ..cubicTo(
-        selectedCenterX + 104,
-        topY - 12,
-        size.width * 0.80,
-        topY - 12,
-        size.width - cornerRadius,
-        topY,
-      )
-      ..quadraticBezierTo(size.width, topY + 2, size.width, topY + cornerRadius)
-      ..lineTo(size.width, size.height - cornerRadius)
-      ..quadraticBezierTo(
-        size.width,
-        size.height,
-        size.width - cornerRadius,
-        size.height,
-      )
-      ..lineTo(cornerRadius, size.height)
-      ..quadraticBezierTo(0, size.height, 0, size.height - cornerRadius)
-      ..lineTo(0, topY + cornerRadius)
-      ..quadraticBezierTo(0, topY + 2, cornerRadius, topY)
-      ..close();
-
-    final notch = Path()
-      ..addOval(Rect.fromCircle(center: notchCenter, radius: notchRadius));
-
-    return Path.combine(PathOperation.difference, body, notch);
-  }
-
-  @override
-  bool shouldRepaint(covariant _BottomNavShapePainter oldDelegate) {
-    return oldDelegate.selectedCenterX != selectedCenterX ||
-        oldDelegate.color != color;
   }
 }
 
@@ -858,4 +621,11 @@ String _formatCalories(int value) {
     }
   }
   return buffer.toString();
+}
+
+int _waterGoalFromWeight(num? currentWeight) {
+  if (currentWeight == null || currentWeight <= 0) {
+    return 2000;
+  }
+  return (currentWeight * 35).round();
 }

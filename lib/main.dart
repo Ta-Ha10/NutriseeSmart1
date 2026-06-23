@@ -22,8 +22,12 @@ import 'Screens/Signup/obesity_screen.dart';
 import 'Screens/Signup/review_screen.dart';
 import 'Screens/Signup/success_screen.dart';
 import 'Screens/Signup/workout_frequency_screen.dart';
+import 'Screens/daily_nutrition_summary_screen.dart';
+import 'Screens/nutrition_history_screen.dart';
 import 'firebase_options.dart';
 import 'main/home_screen.dart';
+import 'main/setting.dart';
+import 'Screens/Signup/meals_screen.dart';
 import 'utils/page_transitions.dart';
 import 'utils/user_data.dart';
 
@@ -124,6 +128,10 @@ class MyApp extends StatelessWidget {
         '/auth_method': (context) => const AuthMethodScreen(),
         '/success': (context) => SuccessScreen(userData: signupData),
         '/home': (context) => const HomeScreen(),
+        '/logs': (context) => const NutritionHistoryScreen(),
+        '/meal': (context) => const MealsScreen(),
+        '/stats': (context) => const DailyNutritionSummaryScreen(),
+        '/settings': (context) => const SettingsScreen(),
         '/breakfast_time': (context) => const BreakfastTimeScreen(),
         '/lunch_time': (context) => const LunchTimeScreen(),
         '/dinner_time': (context) => const DinnerTimeScreen(),
@@ -161,6 +169,14 @@ class MyApp extends StatelessWidget {
         return SuccessScreen(userData: signupData);
       case '/home':
         return const HomeScreen();
+      case '/logs':
+        return const NutritionHistoryScreen();
+      case '/meal':
+        return const MealsScreen();
+      case '/stats':
+        return const DailyNutritionSummaryScreen();
+      case '/settings':
+        return const SettingsScreen();
       case '/breakfast_time':
         return const BreakfastTimeScreen();
       case '/lunch_time':

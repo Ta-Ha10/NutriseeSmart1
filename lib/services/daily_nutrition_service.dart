@@ -86,21 +86,30 @@ class DailyNutritionService {
         .collection('users')
         .doc(uid)
         .collection('dailyNutrition')
-        .where(FieldPath.documentId, isGreaterThanOrEqualTo: dateString(start))
-        .where(FieldPath.documentId, isLessThanOrEqualTo: dateString(end))
-        .orderBy(FieldPath.documentId)
         .get();
 
-    return snapshot.docs.map((doc) {
-      final log = DailyNutritionLog.fromMap(doc.id, doc.data());
-      return _withFallbackTargets(
-        log,
-        targetCalories: targetCalories,
-        targetCarbs: targetCarbs,
-        targetProtein: targetProtein,
-        targetFat: targetFat,
-      );
-    }).toList();
+    final startKey = dateString(start);
+    final endKey = dateString(end);
+
+    final logs = snapshot.docs
+        .where(
+          (doc) =>
+              doc.id.compareTo(startKey) >= 0 && doc.id.compareTo(endKey) <= 0,
+        )
+        .map((doc) {
+          final log = DailyNutritionLog.fromMap(doc.id, doc.data());
+          return _withFallbackTargets(
+            log,
+            targetCalories: targetCalories,
+            targetCarbs: targetCarbs,
+            targetProtein: targetProtein,
+            targetFat: targetFat,
+          );
+        })
+        .toList();
+
+    logs.sort((a, b) => a.dateString.compareTo(b.dateString));
+    return logs;
   }
 
   static Future<void> logMeal({

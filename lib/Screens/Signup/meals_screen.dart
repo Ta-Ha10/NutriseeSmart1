@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../widgets/app_bottom_nav.dart';
 import '../../widgets/components.dart';
 import '../../utils/user_data.dart';
 import '../../services/daily_nutrition_service.dart';
@@ -268,191 +269,6 @@ class _MealsScreenState extends State<MealsScreen> {
         monday.day == currentMonday.day;
   }
 
-  Widget _buildWeekDaySelector() {
-    final weekDays = _weekDays();
-    final weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    final today = DateTime.now();
-
-    return SizedBox(
-      height: 70,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: weekDays.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final date = weekDays[index];
-          final isSelected = index == selectedDayIndex;
-          final isToday =
-              date.year == today.year &&
-              date.month == today.month &&
-              date.day == today.day;
-
-          return GestureDetector(
-            onTap: () => setState(() => selectedDayIndex = index),
-            child: Container(
-              width: 55,
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? Colors.green
-                    : (isToday ? Colors.orange.shade50 : Colors.white),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-                border: Border.all(
-                  color: isSelected
-                      ? Colors.green
-                      : (isToday
-                            ? Colors.orange.shade300
-                            : Colors.grey.shade200),
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    weekdayLabels[index],
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected
-                          ? Colors.white
-                          : (isToday ? Colors.orange : Colors.black87),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isSelected
-                          ? Colors.white
-                          : (isToday
-                                ? Colors.orange.shade100
-                                : Colors.grey.shade100),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${date.day}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: isSelected
-                              ? Colors.green
-                              : (isToday ? Colors.orange : Colors.black87),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  String _formatWeekDateRange(DateTime monday, DateTime sunday) {
-    return '${monday.day}-${sunday.day}';
-  }
-
-  Widget _buildWeekSelector() {
-    final weekMondays = _getWeekMondays();
-
-    // Calculate dynamic height based on number of weeks
-    // 2 weeks per row = 1 row (60px), 4 weeks = 2 rows (60px each = 120px), etc.
-    final numRows = (weekMondays.length + 1) ~/ 2;
-    final dynamicHeight =
-        (numRows * 65).toDouble() + ((numRows - 1) * 10).toDouble();
-
-    return SizedBox(
-      height: dynamicHeight,
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: weekMondays.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: 2.8,
-        ),
-        itemBuilder: (context, index) {
-          final monday = weekMondays[index];
-          final sunday = monday.add(const Duration(days: 6));
-          final isSelected = index == selectedWeekIndex;
-          final isCurrentWeek = _isCurrentWeek(monday);
-
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                selectedWeekIndex = index;
-              });
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? Colors.green
-                    : (isCurrentWeek ? Colors.green.shade50 : Colors.white),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isSelected
-                      ? Colors.green
-                      : (isCurrentWeek
-                            ? Colors.green.shade200
-                            : Colors.grey.shade300),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    'W${index + 1}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? Colors.white
-                          : (isCurrentWeek ? Colors.green : Colors.black87),
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    _formatWeekDateRange(monday, sunday),
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: isSelected
-                          ? Colors.white70
-                          : (isCurrentWeek
-                                ? Colors.green.shade600
-                                : Colors.grey.shade600),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   Future<void> _loadRecipesForMeal(String mealType) async {
     try {
       final targetCalories = mealCalorieTargets[mealType] ?? 500;
@@ -562,6 +378,7 @@ class _MealsScreenState extends State<MealsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF6F4EF),
+      bottomNavigationBar: const AppBottomNav(selectedIndex: 0),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -582,62 +399,6 @@ class _MealsScreenState extends State<MealsScreen> {
                         tooltip: 'Refresh recipes',
                       ),
                       const Icon(Icons.settings),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Column(
-                children: [
-                  // 4 Weeks Toggle
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '4 Weeks',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          showWeekSelector
-                              ? Icons.expand_less
-                              : Icons.expand_more,
-                          color: Colors.grey.shade600,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            showWeekSelector = !showWeekSelector;
-                          });
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                  // Week Selector (Animated)
-                  if (showWeekSelector) ...[
-                    const SizedBox(height: 8),
-                    _buildWeekSelector(),
-                  ],
-                  const SizedBox(height: 16),
-                  // This Week Section
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'This Week',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildWeekDaySelector(),
                     ],
                   ),
                 ],
