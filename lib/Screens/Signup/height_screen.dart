@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
+import '../../l10n/app_locale.dart';
 import '../../utils/auto_dismiss_dialog.dart';
 import '../../utils/page_transitions.dart';
 import '../../utils/user_data.dart';
@@ -31,12 +32,16 @@ class _HeightScreenState extends State<HeightScreen> {
 
     switch (questionType) {
       case "height":
-        title = "Why do we ask about height?";
+        title = AppLocaleController.isArabic()
+            ? 'لماذا نسأل عن الطول؟'
+            : "Why do we ask about height?";
         explanation =
             "Height is essential for calculating your Body Mass Index (BMI) and Basal Metabolic Rate (BMR). This helps us determine your daily calorie needs and create accurate nutrition and fitness recommendations.";
         break;
       case "obesity_level":
-        title = "Why do we ask about obesity level?";
+        title = AppLocaleController.isArabic()
+            ? 'لماذا نسأل عن مستوى السمنة؟'
+            : "Why do we ask about obesity level?";
         explanation =
             "Understanding your body composition helps us assess health risks and create appropriate intervention strategies. This information guides our recommendations for safe and effective weight management.";
         break;
@@ -111,11 +116,15 @@ class _HeightScreenState extends State<HeightScreen> {
                     ),
                     children: [
                       const TextSpan(
-                        text: "What's your ",
+                        text: AppLocaleController.isArabic()
+                            ? 'ما هو '
+                            : "What's your ",
                         style: TextStyle(fontSize: 29),
                       ),
                       TextSpan(
-                        text: "height",
+                        text: AppLocaleController.isArabic()
+                            ? 'الطول'
+                            : 'height',
                         style: const TextStyle(
                           color: Colors.green,
                           fontSize: 29,
@@ -130,9 +139,11 @@ class _HeightScreenState extends State<HeightScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      "Behind the question",
-                      style: TextStyle(fontSize: 17, color: Colors.black54),
+                    Text(
+                      AppLocaleController.isArabic()
+                          ? 'لماذا نسأل؟'
+                          : 'Behind the question',
+                      style: const TextStyle(fontSize: 17, color: Colors.black54),
                     ),
                     const SizedBox(width: 8),
                     GestureDetector(

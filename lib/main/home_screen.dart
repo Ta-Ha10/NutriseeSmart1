@@ -7,6 +7,7 @@ import 'package:nutriseesmart1/main/menu_screen.dart';
 import '../services/daily_nutrition_service.dart';
 import '../services/firestore_service.dart';
 import '../services/water_intake_service.dart';
+import '../l10n/app_locale.dart';
 import '../utils/models/daily_nutrition_log.dart';
 import '../utils/models/daily_water_log.dart';
 import '../widgets/app_bottom_nav.dart';
@@ -40,8 +41,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xffF2EDE9),
+      backgroundColor: theme.scaffoldBackgroundColor,
       bottomNavigationBar: const AppBottomNav(selectedIndex: 2),
       body: SafeArea(
         child: Padding(
@@ -50,14 +53,12 @@ class _HomeScreenState extends State<HomeScreen> {
             future: _userDataFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(color: Colors.green),
-                );
+                return const Center(child: CircularProgressIndicator());
               }
 
               if (snapshot.hasError) {
-                return const Center(
-                  child: Text('Couldn\'t load your profile data.'),
+                return Center(
+                  child: Text(AppStrings.homeLoadError(context)),
                 );
               }
 
@@ -66,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _readMap(snapshot.data, 'personalData'),
                     'name',
                   ) ??
-                  'Athlete';
+                  AppStrings.homeAthlete(context);
               final menuWidth = MediaQuery.of(context).size.width * 0.6;
               return Stack(
                 children: [
@@ -125,7 +126,7 @@ class HomeBody extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         HomeHeader(
-          name: _readString(personalData, 'name') ?? 'Athlete',
+          name: _readString(personalData, 'name') ?? AppStrings.homeAthlete(context),
           onMenuTap: onMenuTap,
         ),
         const SizedBox(height: 20),
@@ -200,9 +201,9 @@ class HomeHeader extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Text(
-                        'Good Morning,',
-                        style: TextStyle(color: Colors.green),
+                      Text(
+                        AppStrings.homeMorning(context),
+                        style: TextStyle(color: Color(0xff13EC5B)),
                         textAlign: TextAlign.center,
                       ),
                       Text(
@@ -231,6 +232,7 @@ class CalorieCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final goalCalories = (targetCalories ?? 0).round();
     final remaining = (remainingCalories ?? targetCalories ?? 0).round();
     return Container(
@@ -238,8 +240,8 @@ class CalorieCard extends StatelessWidget {
       height: 200,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFF16A34A), width: 2.2),
+        color: colorScheme.surface,
+        border: Border.all(color: colorScheme.primary, width: 2.2),
         boxShadow: const [
           BoxShadow(
             color: Color(0x22000000),
@@ -252,28 +254,30 @@ class CalorieCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'REMAINING',
+            Text(
+              AppStrings.remainingLabel(context),
               style: TextStyle(
-                color: Color(0xFF616161),
+                color: colorScheme.onSurfaceVariant,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(height: 6),
             Text(
-              remaining > 0 ? '$remaining' : '--',
-              style: const TextStyle(
+              remaining > 0
+                  ? AppLocaleController.formatNumber(remaining)
+                  : '--',
+              style: TextStyle(
                 fontSize: 34,
                 fontWeight: FontWeight.w700,
-                color: Colors.black,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              'GOAL ${goalCalories > 0 ? _formatCalories(goalCalories) : '--'}',
-              style: const TextStyle(
-                color: Color(0xFF7A7A7A),
+              AppStrings.goalLabel(context, goalCalories),
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
               ),
@@ -309,12 +313,14 @@ class NutritionOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(18, 22, 18, 28),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         children: [
@@ -357,23 +363,24 @@ class MacrosRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         MacroCard(
-          title: 'Carbs',
+          title: AppStrings.carbs(context),
           amountLabel: _macroLabel(remainingCarbs, carbs),
-          accentColor: const Color(0xFF3B82F6),
+          accentColor: colorScheme.secondary,
         ),
         MacroCard(
-          title: 'Protein',
+          title: AppStrings.protein(context),
           amountLabel: _macroLabel(remainingProtein, protein),
-          accentColor: const Color(0xFF16A34A),
+          accentColor: colorScheme.primary,
         ),
         MacroCard(
-          title: 'Fats',
+          title: AppStrings.fats(context),
           amountLabel: _macroLabel(remainingFats, fats),
-          accentColor: const Color(0xFFEAB308),
+          accentColor: colorScheme.tertiary,
         ),
       ],
     );
@@ -391,7 +398,6 @@ class ActionButtons extends StatelessWidget {
           children: [
             Expanded(
               child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -400,7 +406,7 @@ class ActionButtons extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.water_drop_outlined),
-                label: const Text('Water Tracker'),
+                label: Text(AppStrings.waterTrackerButton(context)),
               ),
             ),
           ],
@@ -422,11 +428,12 @@ class WaterIntakeGraph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     if (uid == null) {
-      return const Expanded(
+      return Expanded(
         child: Center(
           child: Text(
-            'Sign in to view your water history.',
+            AppStrings.signInToViewWaterHistory(context),
             style: TextStyle(color: Colors.black54),
           ),
         ),
@@ -442,9 +449,7 @@ class WaterIntakeGraph extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.green),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           final logsByDate = <String, DailyWaterLog>{
@@ -468,12 +473,15 @@ class WaterIntakeGraph extends StatelessWidget {
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   Text(
-                    'Water Intake',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    AppStrings.waterIntake(context),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  Text('Last 7 Days', style: TextStyle(color: Colors.green)),
+                  Text(
+                    AppStrings.last7Days(context),
+                    style: TextStyle(color: colorScheme.primary),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -482,8 +490,8 @@ class WaterIntakeGraph extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(14, 18, 14, 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.green),
-                    color: Colors.white,
+                    border: Border.all(color: colorScheme.outlineVariant),
+                    color: colorScheme.surface,
                   ),
                   child: Column(
                     children: [
@@ -520,8 +528,9 @@ class WaterIntakeGraph extends StatelessWidget {
                                           height: barHeight,
                                           decoration: BoxDecoration(
                                             color: isToday
-                                                ? const Color(0xFF49B44E)
-                                                : const Color(0xFFBFE8C3),
+                                                ? colorScheme.primary
+                                                : colorScheme.primary
+                                                      .withValues(alpha: 0.35),
                                             borderRadius: BorderRadius.circular(
                                               12,
                                             ),
@@ -538,16 +547,16 @@ class WaterIntakeGraph extends StatelessWidget {
                                             ? FontWeight.w700
                                             : FontWeight.w500,
                                         color: isToday
-                                            ? const Color(0xFF49B44E)
-                                            : Colors.black87,
+                                            ? colorScheme.primary
+                                            : colorScheme.onSurface,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '$consumed ml',
-                                      style: const TextStyle(
+                                      '${AppLocaleController.formatNumber(consumed)} ml',
+                                      style: TextStyle(
                                         fontSize: 10,
-                                        color: Colors.black54,
+                                        color: colorScheme.onSurfaceVariant,
                                       ),
                                     ),
                                   ],
@@ -559,10 +568,10 @@ class WaterIntakeGraph extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Goal $targetMl ml per day',
-                        style: const TextStyle(
+                        AppStrings.goalPerDay(context, targetMl),
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Colors.black54,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -603,24 +612,13 @@ num? _readNum(Map<String, dynamic>? source, String key) {
 String _macroLabel(double? remainingGrams, double? targetGrams) {
   final remaining = remainingGrams?.round() ?? 0;
   final target = targetGrams?.round() ?? 0;
-  return '${remaining > 0 ? remaining : 0}/${target > 0 ? target : '--'}g';
-}
-
-String _formatCalories(int value) {
-  final text = value.toString();
-  if (text.length <= 3) {
-    return text;
-  }
-
-  final buffer = StringBuffer();
-  for (var i = 0; i < text.length; i++) {
-    buffer.write(text[i]);
-    final remaining = text.length - i - 1;
-    if (remaining > 0 && remaining % 3 == 0) {
-      buffer.write(',');
-    }
-  }
-  return buffer.toString();
+  final remainingText = AppLocaleController.formatNumber(
+    remaining > 0 ? remaining : 0,
+  );
+  final targetText = target > 0
+      ? AppLocaleController.formatNumber(target)
+      : '--';
+  return '$remainingText/$targetText g';
 }
 
 int _waterGoalFromWeight(num? currentWeight) {

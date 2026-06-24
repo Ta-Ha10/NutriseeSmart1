@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../l10n/app_locale.dart';
 import '../../services/firestore_service.dart';
 import '../../utils/page_transitions.dart';
 import '../../utils/widgets.dart';
@@ -35,6 +36,16 @@ class _AuthMethodScreenState extends State<AuthMethodScreen> {
                   onPressed: () => Navigator.pop(context),
                 ),
                 const Spacer(),
+                IconButton(
+                  tooltip: AppLocaleController.isArabic()
+                      ? 'تغيير اللغة'
+                      : 'Change language',
+                  onPressed: () => AppLocaleController.setArabicEnabled(
+                    !AppLocaleController.isArabic(),
+                  ),
+                  icon: const Icon(Icons.language),
+                  color: Colors.black,
+                ),
               ],
             ),
             Gap(20),

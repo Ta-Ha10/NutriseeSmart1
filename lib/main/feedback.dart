@@ -20,18 +20,20 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           "Feedback",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -44,10 +46,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               "We Value your opinion",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 6), 
             const Text(
               "Help us improve your fitness journey By sharing your thought",
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 24),
 
@@ -60,10 +62,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Poor",
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
+                const Text("Poor", style: TextStyle(fontSize: 12)),
                 Row(
                   children: List.generate(5, (index) {
                     return GestureDetector(
@@ -74,16 +73,13 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                       },
                       child: Icon(
                         index < selectedRating ? Icons.star : Icons.star_border,
-                        color: const Color(0xFFFFC107),
+                        color: colorScheme.secondary,
                         size: 28,
                       ),
                     );
                   }),
                 ),
-                const Text(
-                  "Excellent",
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
+                const Text("Excellent", style: TextStyle(fontSize: 12)),
               ],
             ),
             const SizedBox(height: 28),
@@ -96,11 +92,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             const SizedBox(height: 14),
             Row(
               children: [
-                _buildFeedbackChip("General"),
+                _buildFeedbackChip("General", colorScheme),
                 const SizedBox(width: 10),
-                _buildFeedbackChip("Bug Report"),
+                _buildFeedbackChip("Bug Report", colorScheme),
                 const SizedBox(width: 10),
-                _buildFeedbackChip("Feature"),
+                _buildFeedbackChip("Feature", colorScheme),
               ],
             ),
             const SizedBox(height: 24),
@@ -108,20 +104,16 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             // Text Input
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xff13EC5B), width: 1.5),
+                border: Border.all(color: colorScheme.primary, width: 1.5),
               ),
               child: TextField(
                 controller: _feedbackController,
                 maxLines: 5,
                 decoration: InputDecoration(
                   hintText: "Tell us what you think.....",
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  filled: true,
-                  fillColor: Colors.white,
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.all(16),
                 ),
               ),
             ),
@@ -130,20 +122,13 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             // Add Screenshot Button
             OutlinedButton.icon(
               onPressed: () {},
-              icon: const Icon(Icons.add, color: Color(0xff13EC5B)),
-              label: const Text(
+              icon: const Icon(Icons.add),
+              label: Text(
                 "Add Screenshot",
-                style: TextStyle(
-                  color: Color(0xff13EC5B),
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xff13EC5B), width: 1.5),
                 minimumSize: const Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
               ),
             ),
             const SizedBox(height: 28),
@@ -157,12 +142,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xff13EC5B),
-                foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 52),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -172,21 +152,13 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               onPressed: () {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               },
-              icon: const Icon(Icons.check_circle, color: Color(0xff13EC5B), size: 20),
-              label: const Text(
+              icon: const Icon(Icons.check_circle, size: 20),
+              label: Text(
                 "End Recipe",
-                style: TextStyle(
-                  color: Color(0xff13EC5B),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
               ),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xff13EC5B), width: 1.5),
                 minimumSize: const Size(double.infinity, 52),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -196,7 +168,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     );
   }
 
-  Widget _buildFeedbackChip(String label) {
+  Widget _buildFeedbackChip(String label, ColorScheme colorScheme) {
     bool isSelected = selectedType == label;
     return GestureDetector(
       onTap: () {
@@ -207,17 +179,19 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xff13EC5B) : Colors.white,
+          color: isSelected ? colorScheme.primary : colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? const Color(0xff13EC5B) : Colors.grey[300]!,
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outlineVariant,
             width: 1.5,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
+            color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
             fontWeight: FontWeight.w600,
             fontSize: 13,
           ),

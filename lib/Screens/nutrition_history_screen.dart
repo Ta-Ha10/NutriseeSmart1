@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/app_locale.dart';
 import '../services/daily_nutrition_service.dart';
 import '../services/firestore_service.dart';
 import '../utils/models/daily_nutrition_log.dart';
@@ -80,17 +81,19 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
       'Nov',
       'Dec',
     ];
-    return '${monthNames[date.month - 1]} ${date.day}';
+    return '${monthNames[date.month - 1]} ${AppLocaleController.formatNumber(date.day)}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xffF2EDE9),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xffF2EDE9),
         elevation: 0,
-        title: const Text('Nutrition History'),
+        title: Text(AppStrings.nutritionHistory(context)),
       ),
       bottomNavigationBar: const AppBottomNav(selectedIndex: 1),
       body: SafeArea(
@@ -98,15 +101,15 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
           future: _historyFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(color: Colors.green),
+              return Center(
+                child: CircularProgressIndicator(color: colorScheme.primary),
               );
             }
 
             final history = snapshot.data;
             if (history == null) {
-              return const Center(
-                child: Text('Please sign in to view your meal logs.'),
+              return Center(
+                child: Text(AppStrings.pleaseSignInMealLogs(context)),
               );
             }
 
@@ -159,19 +162,18 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Today, ${_formatDateLabel(DateTime.now())}',
+                        '${AppStrings.today(context)}, ${_formatDateLabel(DateTime.now())}',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const Icon(Icons.calendar_month_outlined),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'This Week',
-                    style: TextStyle(
+                  Text(
+                    AppStrings.thisWeek(context),
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
-                      color: Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -199,7 +201,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
   }
 
   Widget _buildWeekDaySelector(List<DateTime> weekDays) {
-    final weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final colorScheme = Theme.of(context).colorScheme;
     final today = DateTime.now();
 
     return SizedBox(
@@ -223,8 +225,10 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? Colors.green
-                    : (isToday ? Colors.orange.shade50 : Colors.white),
+                    ? colorScheme.primary
+                    : (isToday
+                          ? colorScheme.secondaryContainer
+                          : colorScheme.surface),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
@@ -235,23 +239,25 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                 ],
                 border: Border.all(
                   color: isSelected
-                      ? Colors.green
+                      ? colorScheme.primary
                       : (isToday
-                            ? Colors.orange.shade300
-                            : Colors.grey.shade200),
+                            ? colorScheme.secondary
+                            : colorScheme.outlineVariant),
                 ),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    weekdayLabels[index],
+                    AppStrings.weekdayShortLabel(context, index),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: isSelected
-                          ? Colors.white
-                          : (isToday ? Colors.orange : Colors.black87),
+                          ? colorScheme.onPrimary
+                          : (isToday
+                                ? colorScheme.secondary
+                                : colorScheme.onSurface),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -261,20 +267,22 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: isSelected
-                          ? Colors.white
+                          ? colorScheme.onPrimary
                           : (isToday
-                                ? Colors.orange.shade100
-                                : Colors.grey.shade100),
+                                ? colorScheme.secondaryContainer
+                                : colorScheme.surfaceContainerHighest),
                     ),
                     child: Center(
                       child: Text(
-                        '${date.day}',
+                        AppLocaleController.formatNumber(date.day),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: isSelected
-                              ? Colors.green
-                              : (isToday ? Colors.orange : Colors.black87),
+                              ? colorScheme.primary
+                              : (isToday
+                                    ? colorScheme.secondary
+                                    : colorScheme.onSurface),
                         ),
                       ),
                     ),
@@ -296,47 +304,51 @@ class _DailySummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Nutrition Summary',
+          Text(
+            AppStrings.nutritionSummary(context),
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 14),
           MacroProgress(
-            label: 'Calories',
+            label: AppStrings.calories(context),
             value:
-                '${log.consumedCalories.round()} / ${log.targetCalories.round()} kcal',
+                '${AppLocaleController.formatNumber(log.consumedCalories.round())} / ${AppLocaleController.formatNumber(log.targetCalories.round())} kcal',
             progress: log.targetCalories > 0
                 ? log.consumedCalories / log.targetCalories
                 : 0,
           ),
           MacroProgress(
-            label: 'Carbs',
+            label: AppStrings.carbs(context),
             value:
-                '${log.consumedCarbs.round()} / ${log.targetCarbs.round()} g',
+                '${AppLocaleController.formatNumber(log.consumedCarbs.round())} / ${AppLocaleController.formatNumber(log.targetCarbs.round())} g',
             progress: log.targetCarbs > 0
                 ? log.consumedCarbs / log.targetCarbs
                 : 0,
           ),
           MacroProgress(
-            label: 'Protein',
+            label: AppStrings.protein(context),
             value:
-                '${log.consumedProtein.round()} / ${log.targetProtein.round()} g',
+                '${AppLocaleController.formatNumber(log.consumedProtein.round())} / ${AppLocaleController.formatNumber(log.targetProtein.round())} g',
             progress: log.targetProtein > 0
                 ? log.consumedProtein / log.targetProtein
                 : 0,
           ),
           MacroProgress(
-            label: 'Fat',
-            value: '${log.consumedFat.round()} / ${log.targetFat.round()} g',
+            label: AppStrings.fat(context),
+            value:
+                '${AppLocaleController.formatNumber(log.consumedFat.round())} / ${AppLocaleController.formatNumber(log.targetFat.round())} g',
             progress: log.targetFat > 0 ? log.consumedFat / log.targetFat : 0,
           ),
         ],
@@ -356,18 +368,18 @@ class _MealsForDay extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Meals',
+        Text(
+          AppStrings.meals(context),
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         const SizedBox(height: 12),
         _MealGroup(
-          title: 'Breakfast',
+          title: AppStrings.breakfast(context),
           meals: mealsByType['breakfast'] ?? const [],
         ),
-        _MealGroup(title: 'Lunch', meals: mealsByType['lunch'] ?? const []),
-        _MealGroup(title: 'Dinner', meals: mealsByType['dinner'] ?? const []),
-        _MealGroup(title: 'Snacks', meals: mealsByType['snacks'] ?? const []),
+        _MealGroup(title: AppStrings.lunch(context), meals: mealsByType['lunch'] ?? const []),
+        _MealGroup(title: AppStrings.dinner(context), meals: mealsByType['dinner'] ?? const []),
+        _MealGroup(title: AppStrings.snacks(context), meals: mealsByType['snacks'] ?? const []),
       ],
     );
   }
@@ -381,6 +393,7 @@ class _MealGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     if (meals.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
@@ -388,12 +401,13 @@ class _MealGroup extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: colorScheme.outlineVariant),
           ),
           child: Text(
-            '$title: no meals logged yet.',
-            style: const TextStyle(color: Colors.black54),
+            '$title: ${AppStrings.noMealsLogged(context)}',
+            style: TextStyle(color: colorScheme.onSurfaceVariant),
           ),
         ),
       );
@@ -412,7 +426,7 @@ class _MealGroup extends StatelessWidget {
           ...meals.map(
             (meal) => FoodItem(
               name: meal.recipeName,
-              kcal: meal.calories.round().toString(),
+              kcal: AppLocaleController.formatNumber(meal.calories.round()),
               imagePath: meal.imageUrl,
               isNetworkImage:
                   meal.imageUrl != null && meal.imageUrl!.startsWith('http'),

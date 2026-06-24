@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/app_locale.dart';
 import '../services/firestore_service.dart';
 import '../services/water_intake_service.dart';
 import '../utils/models/daily_water_log.dart';
@@ -14,9 +15,24 @@ class WaterTrackerScreen extends StatefulWidget {
 
 class _WaterTrackerScreenState extends State<WaterTrackerScreen> {
   static const _cupOptions = <_CupOption>[
-    _CupOption(label: 'Small Cup', amountMl: 150, icon: Icons.local_cafe),
-    _CupOption(label: 'Medium Cup', amountMl: 250, icon: Icons.local_drink),
-    _CupOption(label: 'Large Cup', amountMl: 400, icon: Icons.water_drop),
+    _CupOption(
+      labelEn: 'Small Cup',
+      labelAr: 'كوب صغير',
+      amountMl: 150,
+      icon: Icons.local_cafe,
+    ),
+    _CupOption(
+      labelEn: 'Medium Cup',
+      labelAr: 'كوب متوسط',
+      amountMl: 250,
+      icon: Icons.local_drink,
+    ),
+    _CupOption(
+      labelEn: 'Large Cup',
+      labelAr: 'كوب كبير',
+      amountMl: 400,
+      icon: Icons.water_drop,
+    ),
   ];
 
   late final Future<Map<String, dynamic>?> _userDataFuture;
@@ -71,14 +87,16 @@ class _WaterTrackerScreenState extends State<WaterTrackerScreen> {
 
   @override
   Widget build(BuildContext context) {
+        final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xffF2EDE9),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: const Color(0xffF2EDE9),
         elevation: 0,
-        title: const Text(
-          'Water Tracker',
-          style: TextStyle(fontWeight: FontWeight.w700),
+        title: Text(
+          AppStrings.waterTracker(context),
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
       body: SafeArea(
@@ -97,8 +115,8 @@ class _WaterTrackerScreenState extends State<WaterTrackerScreen> {
               final currentWeight = _readNum(personalData, 'currentWeight');
               final goalMl = _goalFromWeight(currentWeight);
               final weightLabel = currentWeight != null
-                  ? '${currentWeight.toDouble().toStringAsFixed(currentWeight % 1 == 0 ? 0 : 1)} kg'
-                  : 'your weight';
+                  ? '${AppLocaleController.localizeDigits(currentWeight.toDouble().toStringAsFixed(currentWeight % 1 == 0 ? 0 : 1))} kg'
+                  : (AppLocaleController.isArabic() ? 'وزنك' : 'your weight');
               return StreamBuilder<DailyWaterLog>(
                 stream: WaterIntakeService.watchTodayLog(
                   uid: FirebaseAuth.instance.currentUser!.uid,
@@ -132,8 +150,8 @@ class _WaterTrackerScreenState extends State<WaterTrackerScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   const SizedBox(height: 4),
-                                  const Text(
-                                    'Recommended daily intake',
+                                  Text(
+                                    AppStrings.waterRecommended(context),
                                     style: TextStyle(
                                       color: Colors.black54,
                                       fontWeight: FontWeight.w600,
@@ -141,7 +159,7 @@ class _WaterTrackerScreenState extends State<WaterTrackerScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    '$weightLabel x 35 ml',
+                                    '${AppLocaleController.localizeDigits(weightLabel)} x ${AppLocaleController.formatNumber(35)} ml',
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
                                       fontSize: 16,
@@ -179,8 +197,8 @@ class _WaterTrackerScreenState extends State<WaterTrackerScreen> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.center,
                                             children: [
-                                              const Text(
-                                                'Current',
+                                              Text(
+                                                AppStrings.current(context),
                                                 style: TextStyle(
                                                   color: Colors.black54,
                                                   fontWeight: FontWeight.w600,
@@ -188,7 +206,7 @@ class _WaterTrackerScreenState extends State<WaterTrackerScreen> {
                                               ),
                                               const SizedBox(height: 6),
                                               Text(
-                                                '$consumedMl ml',
+                                                '${AppLocaleController.formatNumber(consumedMl)} ml',
                                                 style: const TextStyle(
                                                   fontSize: 28,
                                                   fontWeight: FontWeight.w800,
@@ -196,7 +214,7 @@ class _WaterTrackerScreenState extends State<WaterTrackerScreen> {
                                               ),
                                               const SizedBox(height: 10),
                                               Text(
-                                                'Goal $goalMl ml',
+                                                '${AppLocaleController.isArabic() ? 'الهدف' : 'Goal'} ${AppLocaleController.formatNumber(goalMl)} ml',
                                                 style: const TextStyle(
                                                   color: Colors.black54,
                                                   fontWeight: FontWeight.w600,
@@ -210,7 +228,7 @@ class _WaterTrackerScreenState extends State<WaterTrackerScreen> {
                                   ),
                                   const SizedBox(height: 14),
                                   Text(
-                                    'Remaining $remainingMl ml',
+                                    '${AppStrings.remaining(context)} ${AppLocaleController.formatNumber(remainingMl)} ml',
                                     style: const TextStyle(
                                       color: Colors.black54,
                                       fontWeight: FontWeight.w500,
@@ -246,31 +264,43 @@ class _WaterTrackerScreenState extends State<WaterTrackerScreen> {
                                   ),
                                   const SizedBox(height: 18),
                                   Row(
-                                    children: const [
+                                    children: [
                                       Expanded(
                                         child: _BenefitTipCard(
                                           icon: Icons.bolt_outlined,
-                                          title: 'More energy',
+                                          title: AppLocaleController.isArabic()
+                                              ? 'طاقة أكثر'
+                                              : 'More energy',
                                           subtitle:
-                                              'Helps reduce tiredness and supports daily focus.',
+                                              AppLocaleController.isArabic()
+                                                  ? 'يساعد على تقليل التعب ويدعم التركيز اليومي.'
+                                                  : 'Helps reduce tiredness and supports daily focus.',
                                         ),
                                       ),
-                                      SizedBox(width: 10),
+                                      const SizedBox(width: 10),
                                       Expanded(
                                         child: _BenefitTipCard(
                                           icon: Icons.favorite_border,
-                                          title: 'Better recovery',
+                                          title: AppLocaleController.isArabic()
+                                              ? 'استشفاء أفضل'
+                                              : 'Better recovery',
                                           subtitle:
-                                              'Supports muscles after workouts and activity.',
+                                              AppLocaleController.isArabic()
+                                                  ? 'يدعم العضلات بعد التمرين والنشاط.'
+                                                  : 'Supports muscles after workouts and activity.',
                                         ),
                                       ),
-                                      SizedBox(width: 10),
+                                      const SizedBox(width: 10),
                                       Expanded(
                                         child: _BenefitTipCard(
                                           icon: Icons.self_improvement_outlined,
-                                          title: 'Healthy skin',
+                                          title: AppLocaleController.isArabic()
+                                              ? 'بشرة صحية'
+                                              : 'Healthy skin',
                                           subtitle:
-                                              'Helps keep skin hydrated and looking fresh.',
+                                              AppLocaleController.isArabic()
+                                                  ? 'يساعد على ترطيب البشرة ويمنحها مظهرًا نضرًا.'
+                                                  : 'Helps keep skin hydrated and looking fresh.',
                                         ),
                                       ),
                                     ],
@@ -291,11 +321,11 @@ class _WaterTrackerScreenState extends State<WaterTrackerScreen> {
                                 ),
                               ),
                               onPressed: () => _resetDay(goalMl),
-                              child: const Text('Reset Day'),
+                              child: Text(AppStrings.resetDay(context)),
                             ),
                             const SizedBox(height: 18),
-                            const Text(
-                              'Tap a cup size to add water to your current intake.',
+                            Text(
+                              AppStrings.tapCupHint(context),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Colors.black54,
@@ -360,7 +390,7 @@ class _CupSizeButton extends StatelessWidget {
               Icon(option.icon, color: foregroundColor, size: 30),
               const SizedBox(height: 10),
               Text(
-                option.label,
+                option.label(context),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: foregroundColor,
@@ -370,7 +400,7 @@ class _CupSizeButton extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${option.amountMl} ml',
+                '${AppLocaleController.formatNumber(option.amountMl)} ml',
                 style: TextStyle(
                   color: isSelected ? Colors.white70 : Colors.black54,
                   fontSize: 12,
@@ -385,15 +415,20 @@ class _CupSizeButton extends StatelessWidget {
 }
 
 class _CupOption {
-  final String label;
+  final String labelEn;
+  final String labelAr;
   final int amountMl;
   final IconData icon;
 
   const _CupOption({
-    required this.label,
+    required this.labelEn,
+    required this.labelAr,
     required this.amountMl,
     required this.icon,
   });
+
+  String label(BuildContext context) =>
+      AppLocaleController.isArabic() ? labelAr : labelEn;
 }
 
 class _BenefitTipCard extends StatelessWidget {
@@ -457,3 +492,4 @@ num? _readNum(Map<String, dynamic>? source, String key) {
   final value = source?[key];
   return value is num ? value : null;
 }
+

@@ -4,24 +4,29 @@ class MacroCard extends StatelessWidget {
   final String title;
   final String amountLabel;
   final double progress;
-  final Color accentColor;
+  final Color? accentColor;
 
   const MacroCard({
     super.key,
     required this.title,
     this.amountLabel = '0g',
     this.progress = 0,
-    this.accentColor = Colors.green,
+    this.accentColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final effectiveAccent = accentColor ?? scheme.primary;
+
     return Container(
       width: 92,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: scheme.outlineVariant),
         boxShadow: const [
           BoxShadow(
             color: Color(0x16000000),
@@ -37,23 +42,23 @@ class MacroCard extends StatelessWidget {
             width: 46,
             height: 6,
             decoration: BoxDecoration(
-              color: accentColor,
+              color: effectiveAccent,
               borderRadius: BorderRadius.circular(999),
             ),
           ),
           const SizedBox(height: 10),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w500,
               fontSize: 15,
-              color: Color(0xFF424242),
+              color: scheme.onSurface,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             amountLabel,
-            style: const TextStyle(fontSize: 11, color: Color(0xFF7A7A7A)),
+            style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -75,6 +80,8 @@ class MacroProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Row(
@@ -84,8 +91,8 @@ class MacroProgress extends StatelessWidget {
         const SizedBox(height: 4),
         LinearProgressIndicator(
           value: progress.clamp(0.0, 1.0),
-          color: Colors.green,
-          backgroundColor: Colors.greenAccent.withValues(alpha: 0.2),
+          color: scheme.primary,
+          backgroundColor: scheme.primary.withValues(alpha: 0.2),
         ),
         const SizedBox(height: 10),
       ],
@@ -111,20 +118,23 @@ class FoodItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     final content = Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: scheme.shadow.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey.shade200, width: 1),
+        border: Border.all(color: scheme.outlineVariant, width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -147,7 +157,7 @@ class FoodItem extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: scheme.shadow.withValues(alpha: 0.1),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -161,11 +171,11 @@ class FoodItem extends StatelessWidget {
                     margin: const EdgeInsets.only(right: 16),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      color: Colors.grey.shade200,
+                      color: scheme.surfaceContainerHighest,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.restaurant,
-                      color: Colors.grey,
+                      color: scheme.onSurfaceVariant,
                       size: 30,
                     ),
                   ),
@@ -175,10 +185,10 @@ class FoodItem extends StatelessWidget {
                     children: [
                       Text(
                         name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                          color: scheme.onSurface,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -186,9 +196,9 @@ class FoodItem extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         '$kcal kcal',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: Colors.green,
+                          color: scheme.primary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -199,9 +209,9 @@ class FoodItem extends StatelessWidget {
             ),
           ),
           if (onTap != null)
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios,
-              color: Colors.grey,
+              color: scheme.onSurfaceVariant,
               size: 16,
             ),
         ],
@@ -228,6 +238,8 @@ class AddFoodButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -235,15 +247,16 @@ class AddFoodButton extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Colors.green, Color(0xFF4CAF50)],
+          gradient: LinearGradient(
+            colors: [scheme.primary, scheme.primaryContainer],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: scheme.outlineVariant),
           boxShadow: [
             BoxShadow(
-              color: Colors.green.withOpacity(0.3),
+              color: scheme.primary.withValues(alpha: 0.3),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -252,16 +265,12 @@ class AddFoodButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.add,
-              color: Colors.white,
-              size: 24,
-            ),
+            Icon(Icons.add, color: scheme.onPrimary, size: 24),
             const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: scheme.onPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),

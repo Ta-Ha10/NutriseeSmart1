@@ -14,6 +14,8 @@ class WorkoutCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -22,9 +24,12 @@ class WorkoutCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontSize: 18)),
+            Text(
+              title,
+              style: TextStyle(fontSize: 18, color: scheme.onSurface),
+            ),
             const SizedBox(height: 8),
-            Text(level, style: const TextStyle(color: Colors.grey)),
+            Text(level, style: TextStyle(color: scheme.onSurfaceVariant)),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: onTap,
@@ -36,4 +41,3 @@ class WorkoutCard extends StatelessWidget {
     );
   }
 }
-

@@ -5,18 +5,20 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           "Profile",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -27,9 +29,9 @@ class ProfileScreen extends StatelessWidget {
             // Avatar with yellow background
             Container(
               padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0xFFFFC107),
+                color: colorScheme.secondary,
               ),
               child: const CircleAvatar(
                 radius: 50,
@@ -37,18 +39,22 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               "Alex Johnson",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
             ),
             const SizedBox(height: 28),
 
             // Biometrics Section
-            biometricsSection(),
+            biometricsSection(colorScheme),
             const SizedBox(height: 28),
 
             // Daily Progress Section
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 "Daily Progress",
@@ -58,24 +64,24 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Calories Card with better layout
-            caloriesCard(),
+            caloriesCard(colorScheme),
             const SizedBox(height: 16),
 
             // Goal + Achieve row
-            goalSection(),
+            goalSection(colorScheme),
           ],
         ),
       ),
     );
   }
 
-  Widget biometricsSection() {
+  Widget biometricsSection(ColorScheme colorScheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
+          children: [
             Text(
               "Biometrics",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -83,7 +89,7 @@ class ProfileScreen extends StatelessWidget {
             Text(
               "Edit",
               style: TextStyle(
-                color: Colors.green,
+                color: Color(0xff13EC5B),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -93,30 +99,35 @@ class ProfileScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            infoCard("WEIGHT", "75", "kg"),
-            infoCard("HEIGHT", "180", "cm"),
-            infoCard("AGE", "28", ""),
+            infoCard(colorScheme, "WEIGHT", "75", "kg"),
+            infoCard(colorScheme, "HEIGHT", "180", "cm"),
+            infoCard(colorScheme, "AGE", "28", ""),
           ],
         ),
       ],
     );
   }
 
-  Widget infoCard(String title, String value, String unit) {
+  Widget infoCard(
+    ColorScheme colorScheme,
+    String title,
+    String value,
+    String unit,
+  ) {
     return Expanded(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 6),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
             Text(
               title,
-              style: const TextStyle(
-                color: Colors.grey,
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
@@ -124,10 +135,10 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               "$value$unit",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: colorScheme.onSurface,
               ),
             ),
           ],
@@ -136,12 +147,12 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget caloriesCard() {
+  Widget caloriesCard(ColorScheme colorScheme) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -149,14 +160,10 @@ class ProfileScreen extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
                   "Calories Per Day",
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                 ),
                 SizedBox(height: 8),
                 Text(
@@ -164,7 +171,7 @@ class ProfileScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -175,11 +182,11 @@ class ProfileScreen extends StatelessWidget {
             height: 80,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF4CAF50), width: 4),
+              border: Border.all(color: colorScheme.primary, width: 4),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.local_fire_department,
-              color: Color(0xFF4CAF50),
+              color: Color(0xff13EC5B),
               size: 40,
             ),
           ),
@@ -188,29 +195,29 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget goalSection() {
+  Widget goalSection(ColorScheme colorScheme) {
     return Row(
       children: [
-        Expanded(child: goalCard("Goal", "70 kg")),
+        Expanded(child: goalCard(colorScheme, "Goal", "70 kg")),
         const SizedBox(width: 16),
-        Expanded(child: goalCard("Achieve", "5 kg")),
+        Expanded(child: goalCard(colorScheme, "Achieve", "5 kg")),
       ],
     );
   }
 
-  Widget goalCard(String title, String value) {
+  Widget goalCard(ColorScheme colorScheme, String title, String value) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: Colors.grey,
+            style: TextStyle(
+              color: colorScheme.onSurfaceVariant,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -218,10 +225,10 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: colorScheme.onSurface,
             ),
           ),
         ],

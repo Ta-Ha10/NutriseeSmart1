@@ -1,14 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'Screens/Login/login_screen.dart';
 import 'Screens/Signup/activity_screen.dart';
 import 'Screens/Signup/auth_method_screen.dart';
 import 'Screens/Signup/birth_screen.dart';
 import 'Screens/Signup/breakfast_time_screen.dart';
-import 'Screens/cooking_timer_screen.dart';
 import 'Screens/Signup/current_weight_screen.dart' show CurrentWeightScreen;
 import 'Screens/Signup/dinner_time_screen.dart';
 import 'Screens/Signup/email_verification_screen.dart';
@@ -17,23 +16,28 @@ import 'Screens/Signup/ingredient_search_screen.dart';
 import 'Screens/Signup/loading_screen.dart';
 import 'Screens/Signup/lunch_time_screen.dart';
 import 'Screens/Signup/meal_goal_screen.dart';
+import 'Screens/Signup/meals_screen.dart';
 import 'Screens/Signup/navigator.dart';
 import 'Screens/Signup/obesity_screen.dart';
 import 'Screens/Signup/review_screen.dart';
 import 'Screens/Signup/success_screen.dart';
 import 'Screens/Signup/workout_frequency_screen.dart';
+import 'Screens/cooking_timer_screen.dart';
 import 'Screens/daily_nutrition_summary_screen.dart';
 import 'Screens/nutrition_history_screen.dart';
 import 'firebase_options.dart';
 import 'main/home_screen.dart';
 import 'main/setting.dart';
-import 'Screens/Signup/meals_screen.dart';
+import 'l10n/app_locale.dart';
+import 'theme/app_theme.dart';
 import 'utils/page_transitions.dart';
 import 'utils/user_data.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await AppLocaleController.initialize();
+  await AppTheme.initialize();
   runApp(const MyApp());
 }
 
@@ -47,7 +51,7 @@ class AuthWrapper extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator(color: Colors.green)),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -68,75 +72,94 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'NutriSeeSmart',
-      theme: ThemeData(
-        useMaterial3: true,
-        primaryColor: Colors.green,
-        scaffoldBackgroundColor: const Color(0xffF2EDE9),
-        fontFamily: GoogleFonts.inter().fontFamily,
-      ),
-      // Check authentication state and show appropriate screen
-      home: const AuthWrapper(),
-      onGenerateRoute: (settings) {
-        // Handle email verification route with email parameter
-        if (settings.name == '/email_verification') {
-          final email = settings.arguments as String?;
-          if (email != null) {
-            return CustomPageTransitions.slideAndFadeTransition(
-              EmailVerificationScreen(email: email),
-            );
-          }
-        }
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppTheme.themeModeNotifier,
+      builder: (context, themeMode, _) {
+        return ValueListenableBuilder<Locale>(
+          valueListenable: AppLocaleController.localeNotifier,
+          builder: (context, locale, _) {
+            final isArabic = AppLocaleController.isArabic(locale);
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: AppStrings.appTitle(locale: locale),
+              locale: locale,
+              supportedLocales: AppLocaleController.supportedLocales,
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              builder: (context, child) {
+                return Directionality(
+                  textDirection:
+                      isArabic ? TextDirection.rtl : TextDirection.ltr,
+                  child: child ?? const SizedBox.shrink(),
+                );
+              },
+              theme: AppTheme.light(),
+              darkTheme: AppTheme.dark(),
+              themeMode: themeMode,
+              home: const AuthWrapper(),
+              onGenerateRoute: (settings) {
+                if (settings.name == '/email_verification') {
+                  final email = settings.arguments as String?;
+                  if (email != null) {
+                    return CustomPageTransitions.slideAndFadeTransition(
+                      EmailVerificationScreen(email: email),
+                    );
+                  }
+                }
 
-        // Handle cooking timer route with recipe data
-        if (settings.name == '/cooking_timer') {
-          final args = settings.arguments as Map<String, dynamic>?;
-          if (args != null) {
-            return CustomPageTransitions.slideAndFadeTransition(
-              CookingTimerScreen(
-                recipeName: args['recipeName'] ?? 'Recipe',
-                ingredients: args['ingredients'] ?? [],
-                instructions: args['instructions'] ?? [],
-                prepTime: args['prepTime'] ?? 30,
-                imageUrl: args['imageUrl'],
-                mealType: args['mealType'],
-                recipeId: args['recipeId'],
-              ),
-            );
-          }
-        }
+                if (settings.name == '/cooking_timer') {
+                  final args = settings.arguments as Map<String, dynamic>?;
+                  if (args != null) {
+                    return CustomPageTransitions.slideAndFadeTransition(
+                      CookingTimerScreen(
+                        recipeName: args['recipeName'] ?? 'Recipe',
+                        ingredients: args['ingredients'] ?? [],
+                        instructions: args['instructions'] ?? [],
+                        prepTime: args['prepTime'] ?? 30,
+                        imageUrl: args['imageUrl'],
+                        mealType: args['mealType'],
+                        recipeId: args['recipeId'],
+                      ),
+                    );
+                  }
+                }
 
-        final Widget page = _buildPage(settings.name ?? '');
-        if (page != const SizedBox.shrink()) {
-          return CustomPageTransitions.slideAndFadeTransition(page);
-        }
-        return null;
-      },
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/navigator': (context) => const NavigatorScreen(),
-        '/birth': (context) => const BirthScreen(),
-        '/current_weight': (context) => const CurrentWeightScreen(),
-        '/goal_weight': (context) => const GoalWeightScreen(),
-        '/obesity': (context) => const ObesityScreen(),
-        '/activity': (context) => const ActivityScreen(),
-        '/meal_goal': (context) => const MealGoalScreen(),
-        '/loading': (context) => LoadingScreen(userData: signupData),
-        '/review': (context) => const ReviewScreen(),
-        '/auth_method': (context) => const AuthMethodScreen(),
-        '/success': (context) => SuccessScreen(userData: signupData),
-        '/home': (context) => const HomeScreen(),
-        '/logs': (context) => const NutritionHistoryScreen(),
-        '/meal': (context) => const MealsScreen(),
-        '/stats': (context) => const DailyNutritionSummaryScreen(),
-        '/settings': (context) => const SettingsScreen(),
-        '/breakfast_time': (context) => const BreakfastTimeScreen(),
-        '/lunch_time': (context) => const LunchTimeScreen(),
-        '/dinner_time': (context) => const DinnerTimeScreen(),
-        '/workout_frequency': (context) => const WorkoutFrequencyScreen(),
-        '/ingredient_search': (context) => const IngredientSearchScreen(),
+                final Widget page = _buildPage(settings.name ?? '');
+                if (page != const SizedBox.shrink()) {
+                  return CustomPageTransitions.slideAndFadeTransition(page);
+                }
+                return null;
+              },
+              routes: {
+                '/login': (context) => const LoginScreen(),
+                '/navigator': (context) => const NavigatorScreen(),
+                '/birth': (context) => const BirthScreen(),
+                '/current_weight': (context) => const CurrentWeightScreen(),
+                '/goal_weight': (context) => const GoalWeightScreen(),
+                '/obesity': (context) => const ObesityScreen(),
+                '/activity': (context) => const ActivityScreen(),
+                '/meal_goal': (context) => const MealGoalScreen(),
+                '/loading': (context) => LoadingScreen(userData: signupData),
+                '/review': (context) => const ReviewScreen(),
+                '/auth_method': (context) => const AuthMethodScreen(),
+                '/success': (context) => SuccessScreen(userData: signupData),
+                '/home': (context) => const HomeScreen(),
+                '/logs': (context) => const NutritionHistoryScreen(),
+                '/meal': (context) => const MealsScreen(),
+                '/stats': (context) => const DailyNutritionSummaryScreen(),
+                '/settings': (context) => const SettingsScreen(),
+                '/breakfast_time': (context) => const BreakfastTimeScreen(),
+                '/lunch_time': (context) => const LunchTimeScreen(),
+                '/dinner_time': (context) => const DinnerTimeScreen(),
+                '/workout_frequency': (context) => const WorkoutFrequencyScreen(),
+                '/ingredient_search': (context) => const IngredientSearchScreen(),
+              },
+            );
+          },
+        );
       },
     );
   }

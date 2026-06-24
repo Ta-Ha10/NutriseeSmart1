@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../services/ai_chat_service.dart';
+import '../l10n/app_locale.dart';
 import 'recipe_feedback.dart';
 
 class RecipeDetailsScreen extends StatefulWidget {
@@ -665,9 +666,10 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
   }
 
   String _formatNumber(double value) {
-    return value == value.roundToDouble()
+    final raw = value == value.roundToDouble()
         ? value.round().toString()
         : value.toStringAsFixed(1);
+    return AppLocaleController.localizeDigits(raw);
   }
 
   List<String> _parseInstructionSteps(String response) {
@@ -1040,7 +1042,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
             icon: Icons.star_border_rounded,
             value: rating == null
                 ? '-- rate'
-                : '${rating.toStringAsFixed(1)} rate',
+                : '${AppLocaleController.localizeDigits(rating.toStringAsFixed(1))} rate',
           ),
         ),
       ],

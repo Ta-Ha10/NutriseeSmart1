@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_locale.dart';
 import '../../services/firestore_service.dart';
 import '../../utils/user_data.dart';
 import '../../utils/widgets.dart';
@@ -253,7 +254,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                '${(userData.currentWeight ?? 0).toStringAsFixed(0)} kg',
+                                '${AppLocaleController.formatNumber((userData.currentWeight ?? 0).round())} kg',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
@@ -268,7 +269,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                '${(userData.goalWeight ?? 0).toStringAsFixed(0)} kg',
+                                '${AppLocaleController.formatNumber((userData.goalWeight ?? 0).round())} kg',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
@@ -296,7 +297,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                               ),
                             ),
                             Text(
-                              'Feb $monthsAway, $yearAway',
+                              'Feb ${AppLocaleController.formatNumber(monthsAway)}, ${AppLocaleController.formatNumber(yearAway)}',
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -327,7 +328,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
                       children: [
                         _buildGoalPoint('Lose weight than focus on maintaining your progress'),
                         const SizedBox(height: 12),
-                        _buildGoalPoint('Reach your goal weight ${(userData.goalWeight ?? 0).toStringAsFixed(0)} kg by Feb $monthsAway, $yearAway'),
+                        _buildGoalPoint('Reach your goal weight ${AppLocaleController.formatNumber((userData.goalWeight ?? 0).round())} kg by Feb ${AppLocaleController.formatNumber(monthsAway)}, ${AppLocaleController.formatNumber(yearAway)}'),
                         const SizedBox(height: 12),
                         _buildGoalPoint('Create lifelong habits to sustain your success'),
                         const SizedBox(height: 12),
@@ -352,10 +353,10 @@ class _SuccessScreenState extends State<SuccessScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildNutrientCircle('🔥', 'Carbs', '${(userData.carbGrams ?? 0).toStringAsFixed(0)}g'),
-                      _buildNutrientCircle('🥚', 'Proteins', '${(userData.proteinGrams ?? 0).toStringAsFixed(0)}g'),
-                      _buildNutrientCircle('🧈', 'Fats', '${(userData.fatGrams ?? 0).toStringAsFixed(0)}g'),
-                      _buildNutrientCircle('📊', 'Calories', '${(userData.targetCalories ?? 0).toStringAsFixed(0)}'),
+                      _buildNutrientCircle('🔥', 'Carbs', '${AppLocaleController.formatNumber((userData.carbGrams ?? 0).round())}g'),
+                      _buildNutrientCircle('🥚', 'Proteins', '${AppLocaleController.formatNumber((userData.proteinGrams ?? 0).round())}g'),
+                      _buildNutrientCircle('🧈', 'Fats', '${AppLocaleController.formatNumber((userData.fatGrams ?? 0).round())}g'),
+                      _buildNutrientCircle('📊', 'Calories', AppLocaleController.formatNumber((userData.targetCalories ?? 0).round())),
                     ],
                   ),
 

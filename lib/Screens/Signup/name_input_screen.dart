@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../l10n/app_locale.dart';
 import '../../utils/page_transitions.dart';
 import '../../utils/user_data.dart';
 import '../../utils/widgets.dart';
@@ -54,7 +55,7 @@ class _NameInputScreenState extends State<NameInputScreen> {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: 'Enter your ',
+                  text: AppLocaleController.isArabic() ? 'أدخل ' : 'Enter your ',
                   style: GoogleFonts.inter(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -62,7 +63,7 @@ class _NameInputScreenState extends State<NameInputScreen> {
                   ),
                 ),
                 TextSpan(
-                  text: 'name ?',
+                  text: AppLocaleController.isArabic() ? 'اسمك؟' : 'name ?',
                   style: GoogleFonts.inter(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -88,7 +89,9 @@ class _NameInputScreenState extends State<NameInputScreen> {
                 ),
                 const Gap(20),
                 Text(
-                  'Let\'s start by knowing your name',
+                  AppLocaleController.isArabic()
+                      ? 'لنبدأ بمعرفة اسمك'
+                      : 'Let\'s start by knowing your name',
                   style: GoogleFonts.inter(fontSize: 14, color: Colors.black54),
                   textAlign: TextAlign.center,
                 ),
@@ -98,7 +101,9 @@ class _NameInputScreenState extends State<NameInputScreen> {
                   child: TextField(
                     controller: _nameController,
                     decoration: InputDecoration(
-                      hintText: 'Enter your name',
+                      hintText: AppLocaleController.isArabic()
+                          ? 'أدخل اسمك'
+                          : 'Enter your name',
                       hintStyle: GoogleFonts.inter(color: Colors.black38),
                       prefixIcon: const Icon(Icons.person, color: Colors.green),
                       border: OutlineInputBorder(

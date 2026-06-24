@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../l10n/app_locale.dart';
 import '../../widgets/app_bottom_nav.dart';
 import '../../widgets/components.dart';
 import '../../utils/user_data.dart';
@@ -73,7 +74,7 @@ class _MealsScreenState extends State<MealsScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         setState(() {
-          errorMessage = 'Please sign in to view meals';
+          errorMessage = AppStrings.mealPleaseSignIn(context);
           isLoading = false;
         });
         return;
@@ -86,8 +87,7 @@ class _MealsScreenState extends State<MealsScreen> {
 
       if (!doc.exists) {
         setState(() {
-          errorMessage =
-              'User profile not found. Please complete your profile setup.';
+          errorMessage = AppStrings.mealProfileMissing(context);
           isLoading = false;
         });
         return;
@@ -96,8 +96,7 @@ class _MealsScreenState extends State<MealsScreen> {
       final data = doc.data();
       if (data == null) {
         setState(() {
-          errorMessage =
-              'User profile data is unavailable. Please try again later.';
+          errorMessage = AppStrings.mealProfileUnavailable(context);
           isLoading = false;
         });
         return;
@@ -134,7 +133,7 @@ class _MealsScreenState extends State<MealsScreen> {
     } catch (e) {
       debugPrint('Error loading user data: $e');
       setState(() {
-        errorMessage = 'Failed to load user data. Please try again.';
+        errorMessage = AppStrings.mealLoadingFailed(context);
       });
     } finally {
       setState(() {
@@ -206,24 +205,6 @@ class _MealsScreenState extends State<MealsScreen> {
       targetProtein: userData?.proteinGrams ?? 0,
       targetFat: userData?.fatGrams ?? 0,
     );
-  }
-
-  String _formatDateLabel(DateTime date) {
-    const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${monthNames[date.month - 1]} ${date.day}';
   }
 
   List<DateTime> _weekDays() {
@@ -309,10 +290,8 @@ class _MealsScreenState extends State<MealsScreen> {
     if (!mounted) return;
     if (!isServerAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Recipe server is not available. Please start the FastAPI server.',
-          ),
+        SnackBar(
+          content: Text(AppStrings.recipeServerUnavailable(context)),
           duration: Duration(seconds: 3),
         ),
       );
@@ -376,8 +355,10 @@ class _MealsScreenState extends State<MealsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xffF6F4EF),
+      backgroundColor: theme.scaffoldBackgroundColor,
       bottomNavigationBar: const AppBottomNav(selectedIndex: 0),
       body: SafeArea(
         child: Padding(
@@ -388,7 +369,7 @@ class _MealsScreenState extends State<MealsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Today, ${_formatDateLabel(DateTime.now())}',
+                    AppStrings.todayDateLabel(context, DateTime.now()),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Row(
@@ -396,7 +377,7 @@ class _MealsScreenState extends State<MealsScreen> {
                       IconButton(
                         icon: const Icon(Icons.refresh),
                         onPressed: _refreshPage,
-                        tooltip: 'Refresh recipes',
+                        tooltip: AppStrings.refreshRecipes(context),
                       ),
                       const Icon(Icons.settings),
                     ],
@@ -408,11 +389,9 @@ class _MealsScreenState extends State<MealsScreen> {
                 child: RefreshIndicator(
                   onRefresh: _refreshPage,
                   child: isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(color: Colors.green),
-                        )
+                      ? const Center(child: CircularProgressIndicator())
                       : errorMessage != null
-                      ? _buildErrorView()
+                      ? _buildErrorView(context)
                       : SingleChildScrollView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           child: Column(
@@ -442,23 +421,32 @@ class _MealsScreenState extends State<MealsScreen> {
     );
   }
 
-  Widget _buildErrorView() {
+  Widget _buildErrorView(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 16),
           Text(
             errorMessage!,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
+            style: TextStyle(fontSize: 16, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: _loadUserDataAndRecipes,
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: const Text('Retry'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+            ),
+            child: Text(AppStrings.retry(context)),
           ),
         ],
       ),
@@ -473,8 +461,11 @@ class DateHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: const [
-        Text('Today, Oct 24', style: TextStyle(fontWeight: FontWeight.bold)),
+      children: [
+        Text(
+          AppStrings.todayDateLabel(context, DateTime.now()),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         Icon(Icons.settings),
       ],
     );
@@ -533,6 +524,7 @@ class CaloriesSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final targetCalories = userData?.targetCalories ?? userData?.tdee ?? 0;
     final caloriesConsumed = _caloriesConsumed();
     final remainingCalories = (targetCalories - caloriesConsumed)
@@ -549,37 +541,38 @@ class CaloriesSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         children: [
-          const Text(
-            'CALORIES REMAINING',
-            style: TextStyle(color: Colors.grey),
+          Text(
+            AppStrings.caloriesRemaining(context),
+            style: TextStyle(color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 6),
           Text(
             remainingCalories.toString(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 32,
-              color: Colors.green,
+              color: colorScheme.primary,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 12),
           MacroProgress(
-            label: 'Carbs',
+            label: AppStrings.carbs(context),
             value: '$carbsConsumed / ${carbsTarget}g',
             progress: carbsTarget > 0 ? carbsConsumed / carbsTarget : 0,
           ),
           MacroProgress(
-            label: 'Protein',
+            label: AppStrings.protein(context),
             value: '$proteinConsumed / ${proteinTarget}g',
             progress: proteinTarget > 0 ? proteinConsumed / proteinTarget : 0,
           ),
           MacroProgress(
-            label: 'Fat',
+            label: AppStrings.fat(context),
             value: '$fatConsumed / ${fatTarget}g',
             progress: fatTarget > 0 ? fatConsumed / fatTarget : 0,
           ),
@@ -652,6 +645,21 @@ class MealsList extends StatelessWidget {
   }
 }
 
+String _mealDisplayLabel(BuildContext context, String key) {
+  switch (key.toLowerCase()) {
+    case 'breakfast':
+      return AppStrings.breakfast(context);
+    case 'lunch':
+      return AppStrings.lunch(context);
+    case 'dinner':
+      return AppStrings.dinner(context);
+    case 'snacks':
+      return AppStrings.snacks(context);
+    default:
+      return key;
+  }
+}
+
 class MealSection extends StatelessWidget {
   final String title;
   final double targetCalories;
@@ -674,6 +682,7 @@ class MealSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     // Calculate total calories from recipes (this would be actual consumed calories)
     final consumedCalories = loggedRecipes.isNotEmpty
         ? loggedRecipes
@@ -689,20 +698,23 @@ class MealSection extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                _mealDisplayLabel(context, title),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               Text(
                 '${consumedCalories.toInt()} / ${targetCalories.toInt()} kcal',
-                style: const TextStyle(color: Colors.grey),
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
             ],
           ),
         ),
         // Show logged meals first, then recipe recommendations or a prompt.
         if (loggedRecipes.isNotEmpty) ...[
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Text(
-              'Logged meals',
+              AppStrings.loggedMeals(context),
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -736,12 +748,13 @@ class MealSection extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colorScheme.outlineVariant),
             ),
-            child: const Text(
-              'Nothing added here yet. Tap Add food + to log a meal.',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+            child: Text(
+              AppStrings.nothingAddedYet(context),
+              style: TextStyle(fontSize: 14),
             ),
           ),
           const SizedBox(height: 12),
@@ -751,22 +764,26 @@ class MealSection extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colorScheme.outlineVariant),
             ),
             child: Row(
               children: [
                 Icon(
                   isServerAvailable ? Icons.play_arrow : Icons.info_outline,
-                  color: Colors.grey,
+                  color: colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     isServerAvailable
-                        ? 'Press Add food + to load recommendations.'
-                        : 'Recipe server is not available. Start the FastAPI server to see recommendations.',
-                    style: const TextStyle(color: Colors.grey, fontSize: 14),
+                        ? AppStrings.pressAddFood(context)
+                        : AppStrings.recipeServerUnavailable(context),
+                    style: TextStyle(
+                      color: colorScheme.onSurfaceVariant,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ],
@@ -777,12 +794,13 @@ class MealSection extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colorScheme.outlineVariant),
             ),
-            child: const Text(
-              'No recipe recommendations found for this meal type.',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+            child: Text(
+              AppStrings.noRecipeRecommendations(context),
+              style: TextStyle(fontSize: 14),
             ),
           ),
         ] else if (isRequested && recipes.isNotEmpty) ...[
@@ -790,18 +808,21 @@ class MealSection extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colorScheme.outlineVariant),
             ),
-            child: const Text(
-              'Recipes are ready in the Add Food search page. Refresh the page to get a new set of search results.',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+            child: Text(
+              AppStrings.recipesReady(context),
+              style: TextStyle(fontSize: 14),
             ),
           ),
           const SizedBox(height: 12),
         ],
         AddFoodButton(
-          label: title == 'Dinner' ? 'Log Dinner' : 'Add food +',
+          label: title == 'Dinner'
+              ? AppStrings.logDinner(context)
+              : AppStrings.addFood(context),
           onTap: () => onLogPressed(title.toLowerCase()),
         ),
         const SizedBox(height: 12),
@@ -843,9 +864,10 @@ class MealSection extends StatelessWidget {
   }
 
   static String _formatNumber(double value) {
-    return value == value.roundToDouble()
+    final raw = value == value.roundToDouble()
         ? value.round().toString()
         : value.toStringAsFixed(1);
+    return AppLocaleController.localizeDigits(raw);
   }
 }
 
@@ -937,9 +959,11 @@ class RecipeDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final imageUrl = _imageUrl(recipe);
     final recipeName =
-        recipe['recipe_name'] ?? recipe['name'] ?? 'Recipe Details';
+        recipe['recipe_name'] ?? recipe['name'] ?? AppStrings.recipeDetails(context);
     final calories = (recipe['nutrition']?['calories'] ?? 0).toInt();
     final labels = _extractDietLabels(recipe);
     final description = recipe['description'] as String?;
@@ -948,18 +972,18 @@ class RecipeDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(recipeName),
-        backgroundColor: Colors.green,
+        title: Text(AppStrings.recipeDetails(context)),
+        backgroundColor: colorScheme.primary,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: const TextStyle(
-          color: Colors.white,
+        iconTheme: IconThemeData(color: colorScheme.onPrimary),
+        titleTextStyle: TextStyle(
+          color: colorScheme.onPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.share, color: Colors.white),
+            icon: Icon(Icons.share, color: colorScheme.onPrimary),
             onPressed: () {
               // TODO: Implement share functionality
             },
@@ -967,9 +991,9 @@ class RecipeDetailPage extends StatelessWidget {
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xffF6F4EF), Colors.white],
+            colors: [theme.scaffoldBackgroundColor, colorScheme.surface],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -985,6 +1009,7 @@ class RecipeDetailPage extends StatelessWidget {
                   height: 280,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: colorScheme.outlineVariant),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.25),
@@ -1003,8 +1028,9 @@ class RecipeDetailPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: colorScheme.outlineVariant),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.08),
@@ -1034,8 +1060,11 @@ class RecipeDetailPage extends StatelessWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.green.shade50,
+                            color: colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: colorScheme.outlineVariant,
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -1071,10 +1100,10 @@ class RecipeDetailPage extends StatelessWidget {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.green.shade100,
+                                  color: colorScheme.surfaceContainerHighest,
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: Colors.green.shade200,
+                                    color: colorScheme.outlineVariant,
                                     width: 1,
                                   ),
                                 ),
@@ -1121,8 +1150,9 @@ class RecipeDetailPage extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: colorScheme.surface,
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: colorScheme.outlineVariant),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.08),
@@ -1158,8 +1188,11 @@ class RecipeDetailPage extends StatelessWidget {
                                 margin: const EdgeInsets.only(bottom: 12),
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade50,
+                                  color: colorScheme.surfaceContainerHighest,
                                   borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: colorScheme.outlineVariant,
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisAlignment:
@@ -1195,8 +1228,9 @@ class RecipeDetailPage extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: colorScheme.surface,
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: colorScheme.outlineVariant),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.08),
@@ -1387,36 +1421,41 @@ class _RecipeSelectionPageState extends State<RecipeSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green,
-        title: Text('Add ${widget.mealType} Food'),
+        backgroundColor: colorScheme.primary,
+        title: Text(
+          '${AppStrings.addFood(context)} ${_mealDisplayLabel(context, widget.mealType)}',
+        ),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: const TextStyle(
-          color: Colors.white,
+        iconTheme: IconThemeData(color: colorScheme.onPrimary),
+        titleTextStyle: TextStyle(
+          color: colorScheme.onPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: Icon(Icons.refresh, color: colorScheme.onPrimary),
             onPressed: _refreshRecipes,
-            tooltip: 'Get different recipes',
+            tooltip: AppStrings.refreshRecipes(context),
           ),
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xffF6F4EF), Colors.white],
+            colors: [theme.scaffoldBackgroundColor, colorScheme.surface],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
         child: isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: Colors.green),
+            ? Center(
+                child: CircularProgressIndicator(color: colorScheme.primary),
               )
             : errorMessage != null
             ? Center(
@@ -1425,7 +1464,10 @@ class _RecipeSelectionPageState extends State<RecipeSelectionPage> {
                   child: Text(
                     errorMessage!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               )
@@ -1444,13 +1486,15 @@ class _RecipeSelectionPageState extends State<RecipeSelectionPage> {
                     final recipeName =
                         recipe['recipe_name'] ??
                         recipe['name'] ??
-                        'Unknown Recipe';
+                        (AppLocaleController.isArabic()
+                            ? 'وصفة غير معروفة'
+                            : 'Unknown Recipe');
                     final calories = (recipe['nutrition']?['calories'] ?? 0)
                         .toInt();
 
                     return Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: colorScheme.surface,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
@@ -1511,7 +1555,11 @@ class _RecipeSelectionPageState extends State<RecipeSelectionPage> {
                                   messenger.showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        '$recipeName added to ${widget.mealType}',
+                                        AppStrings.recipeAdded(
+                                          context,
+                                          recipeName,
+                                          _mealDisplayLabel(context, widget.mealType),
+                                        ),
                                       ),
                                       backgroundColor: Colors.green,
                                       behavior: SnackBarBehavior.floating,
@@ -1536,7 +1584,7 @@ class _RecipeSelectionPageState extends State<RecipeSelectionPage> {
                                   height: 80,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(16),
-                                    color: Colors.grey.shade200,
+                                    color: colorScheme.surfaceContainerHighest,
                                     image: imageUrl != null
                                         ? DecorationImage(
                                             image: NetworkImage(imageUrl),
@@ -1624,8 +1672,10 @@ class _RecipeSelectionPageState extends State<RecipeSelectionPage> {
                                                 .toList()
                                           : [
                                               Chip(
-                                                label: const Text(
-                                                  'Healthy',
+                                                label: Text(
+                                                  AppLocaleController.isArabic()
+                                                      ? 'صحي'
+                                                      : 'Healthy',
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                   ),

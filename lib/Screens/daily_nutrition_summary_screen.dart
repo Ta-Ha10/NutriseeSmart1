@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/app_locale.dart';
 import '../services/daily_nutrition_service.dart';
 import '../services/firestore_service.dart';
 import '../utils/models/daily_nutrition_log.dart';
@@ -47,10 +48,12 @@ class _DailyNutritionSummaryScreenState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xffF2EDE9),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xffF2EDE9),
         elevation: 0,
         title: const Text('Daily Nutrition'),
         actions: [
@@ -72,8 +75,8 @@ class _DailyNutritionSummaryScreenState
           future: _summaryFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(color: Colors.green),
+              return Center(
+                child: CircularProgressIndicator(color: colorScheme.primary),
               );
             }
             if (snapshot.hasError) {
@@ -98,6 +101,7 @@ class _SummaryBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final grouped = log.mealsByType;
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -105,20 +109,21 @@ class _SummaryBody extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: colorScheme.outlineVariant),
           ),
           child: Column(
             children: [
-              const Text(
+              Text(
                 'CALORIES REMAINING',
-                style: TextStyle(color: Colors.grey),
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 6),
               Text(
-                log.remainingCalories.round().toString(),
-                style: const TextStyle(
-                  color: Colors.green,
+                AppLocaleController.formatNumber(log.remainingCalories.round()),
+                style: TextStyle(
+                  color: colorScheme.primary,
                   fontSize: 34,
                   fontWeight: FontWeight.bold,
                 ),
@@ -181,6 +186,7 @@ class _MacroLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final progress = target > 0 ? consumed / target : 0.0;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -196,8 +202,8 @@ class _MacroLine extends StatelessWidget {
           const SizedBox(height: 5),
           LinearProgressIndicator(
             value: progress.clamp(0.0, 1.0),
-            color: Colors.green,
-            backgroundColor: Colors.greenAccent.withValues(alpha: 0.2),
+            color: colorScheme.primary,
+            backgroundColor: colorScheme.primary.withValues(alpha: 0.2),
           ),
         ],
       ),
@@ -213,14 +219,16 @@ class _MealTypeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     if (meals.isEmpty) return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,7 +240,7 @@ class _MealTypeSection extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 children: [
-                  const Icon(Icons.restaurant, color: Colors.green, size: 20),
+                  Icon(Icons.restaurant, color: colorScheme.primary, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -255,11 +263,13 @@ class _MealTypeSection extends StatelessWidget {
 class _EmptyMealCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: const Text('No meals logged today.'),
     );

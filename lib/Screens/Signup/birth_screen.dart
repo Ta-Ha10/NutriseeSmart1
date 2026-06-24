@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
+import '../../l10n/app_locale.dart';
 import '../../utils/auto_dismiss_dialog.dart';
 import '../../utils/page_transitions.dart';
 import '../../utils/user_data.dart';
@@ -52,8 +53,8 @@ class _BirthScreenState extends State<BirthScreen> {
         _selectedYear == null) {
       return "Select your birth date";
     }
-    return "${_selectedDay.toString().padLeft(2, '0')} "
-        "${_monthName(_selectedMonth!)} $_selectedYear";
+    return "${AppLocaleController.formatNumber(_selectedDay!)} "
+        "${_monthName(_selectedMonth!)} ${AppLocaleController.formatNumber(_selectedYear!)}";
   }
 
   String _monthName(int m) {
@@ -149,7 +150,7 @@ class _BirthScreenState extends State<BirthScreen> {
                         children: List.generate(31, (index) {
                           return Center(
                             child: Text(
-                              (index + 1).toString().padLeft(2, '0'),
+                              AppLocaleController.formatNumber(index + 1),
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w500,
@@ -201,7 +202,9 @@ class _BirthScreenState extends State<BirthScreen> {
                         children: List.generate(100, (index) {
                           return Center(
                             child: Text(
-                              (DateTime.now().year - index).toString(),
+                              AppLocaleController.formatNumber(
+                                DateTime.now().year - index,
+                              ),
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w500,

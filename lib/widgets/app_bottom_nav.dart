@@ -5,6 +5,7 @@ import '../Screens/daily_nutrition_summary_screen.dart';
 import '../Screens/nutrition_history_screen.dart';
 import '../main/home_screen.dart';
 import '../main/setting.dart';
+import '../l10n/app_locale.dart';
 
 class AppBottomNav extends StatefulWidget {
   final int selectedIndex;
@@ -17,7 +18,7 @@ class AppBottomNav extends StatefulWidget {
 
 class _AppBottomNavState extends State<AppBottomNav> {
   static const Color _activeColor = Color(0xFF49B44E);
-  static const Color _inactiveColor = Color(0xFFD9D9D9);
+  static const Color _inactiveColor = Color(0xFF94A3B8);
 
   late int _selectedIndex;
 
@@ -64,28 +65,33 @@ class _AppBottomNavState extends State<AppBottomNav> {
     if (routeName == null) return;
 
     setState(() => _selectedIndex = index);
-    Navigator.of(context).pushReplacement(_buildRoute(routeName));
+    Navigator.of(context).push(_buildRoute(routeName));
   }
 
   PageRouteBuilder<void> _buildRoute(String routeName) {
     final page = _pageForRoute(routeName);
     return PageRouteBuilder<void>(
       settings: RouteSettings(name: routeName),
-      transitionDuration: const Duration(milliseconds: 320),
-      reverseTransitionDuration: const Duration(milliseconds: 260),
+      transitionDuration: const Duration(milliseconds: 420),
+      reverseTransitionDuration: const Duration(milliseconds: 320),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slide =
-            Tween<Offset>(
-              begin: const Offset(0.04, 0.02),
-              end: Offset.zero,
-            ).animate(
-              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-            );
+        final slide = Tween<Offset>(
+          begin: const Offset(0.10, 0.0),
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+        );
         final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+        final scale = Tween<double>(begin: 0.98, end: 1.0).animate(
+          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+        );
         return FadeTransition(
           opacity: fade,
-          child: SlideTransition(position: slide, child: child),
+          child: ScaleTransition(
+            scale: scale,
+            child: SlideTransition(position: slide, child: child),
+          ),
         );
       },
     );
@@ -110,52 +116,66 @@ class _AppBottomNavState extends State<AppBottomNav> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final barBorderColor = isDarkMode
+        ? colorScheme.outlineVariant.withValues(alpha: 0.45)
+        : const Color(0xFFE7E7E7);
+    final barShadowColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.35)
+        : Colors.black.withValues(alpha: 0.06);
+
     return SafeArea(
-      minimum: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(14, 0, 14, 10),
       child: SizedBox(
-        height: 112,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final itemWidth = width / _items.length;
-            final selectedCenterX = itemWidth * (_selectedIndex + 0.5);
+        height: 94,
+        child: Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: barBorderColor),
+            boxShadow: [
+              BoxShadow(
+                color: barShadowColor,
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: List.generate(_items.length, (index) {
+              final item = _items[index];
+              final isSelected = index == _selectedIndex;
+              final isCenter = index == 2;
+              final label = AppStrings.bottomNavLabel(context, item.routeName!) ??
+                  item.label;
 
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: 82,
-                  child: CustomPaint(
-                    painter: _BottomNavShapePainter(
-                      selectedCenterX: selectedCenterX,
-                      color: Colors.white,
-                    ),
-                  ),
+              return Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _selectItem(index),
+                  child: isCenter
+                      ? _CenterHomeItem(
+                          icon: isSelected ? Icons.cottage : Icons.cottage_outlined,
+                          label: label,
+                          isSelected: isSelected,
+                          activeColor: _activeColor,
+                          inactiveColor: _inactiveColor,
+                        )
+                      : _TabItem(
+                          icon: item.icon,
+                          label: label,
+                          isSelected: isSelected,
+                          activeColor: _activeColor,
+                          inactiveColor: _inactiveColor,
+                        ),
                 ),
-                Positioned.fill(
-                  bottom: 0,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: List.generate(_items.length, (index) {
-                      final item = _items[index];
-                      final isSelected = index == _selectedIndex;
-
-                      return _NavItem(
-                        icon: item.icon,
-                        label: item.label,
-                        isSelected: isSelected,
-                        color: isSelected ? _activeColor : _inactiveColor,
-                        onTap: () => _selectItem(index),
-                      );
-                    }),
-                  ),
-                ),
-              ],
-            );
-          },
+              );
+            }),
+          ),
         ),
       ),
     );
@@ -174,151 +194,106 @@ class _BottomNavItem {
   });
 }
 
-class _NavItem extends StatelessWidget {
+class _TabItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool isSelected;
-  final Color color;
-  final VoidCallback onTap;
+  final Color activeColor;
+  final Color inactiveColor;
 
-  const _NavItem({
+  const _TabItem({
     required this.icon,
     required this.label,
     required this.isSelected,
-    required this.color,
-    required this.onTap,
+    required this.activeColor,
+    required this.inactiveColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 46, bottom: 12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Icon(icon, color: color, size: isSelected ? 29 : 27),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                ),
-              ),
-            ],
+    final color = isSelected ? activeColor : inactiveColor;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 26),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-class _BottomNavShapePainter extends CustomPainter {
-  final double selectedCenterX;
-  final Color color;
+class _CenterHomeItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final Color activeColor;
+  final Color inactiveColor;
 
-  const _BottomNavShapePainter({
-    required this.selectedCenterX,
-    required this.color,
+  const _CenterHomeItem({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.activeColor,
+    required this.inactiveColor,
   });
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final path = _buildPath(size);
-    canvas.drawShadow(path, const Color(0x26000000), 10, false);
+  Widget build(BuildContext context) {
+    final labelColor = isSelected ? activeColor : inactiveColor;
 
-    final paint = Paint()
-      ..style = PaintingStyle.fill
-      ..color = color;
-    canvas.drawPath(path, paint);
-  }
-
-  Path _buildPath(Size size) {
-    const cornerRadius = 20.0;
-    const topY = 14.0;
-    const notchRadius = 41.0;
-    final notchCenter = Offset(selectedCenterX, 36);
-    final isNearLeftEdge = selectedCenterX < 108;
-    final isNearRightEdge = selectedCenterX > size.width - 108;
-
-    if (isNearLeftEdge || isNearRightEdge) {
-      final body = Path()
-        ..addRRect(
-          RRect.fromRectAndRadius(
-            Rect.fromLTWH(0, topY, size.width, size.height - topY),
-            const Radius.circular(cornerRadius),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Transform.translate(
+          offset: const Offset(0, -12),
+          child: Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: activeColor,
+              border: Border.all(color: activeColor, width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: activeColor.withValues(alpha: 0.30),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: 31,
+            ),
           ),
-        );
-      final notch = Path()
-        ..addOval(Rect.fromCircle(center: notchCenter, radius: notchRadius));
-
-      return Path.combine(PathOperation.difference, body, notch);
-    }
-
-    final body = Path()
-      ..moveTo(cornerRadius, topY)
-      ..cubicTo(
-        size.width * 0.20,
-        topY - 12,
-        selectedCenterX - 104,
-        topY - 12,
-        selectedCenterX - 58,
-        topY,
-      )
-      ..cubicTo(
-        selectedCenterX - 38,
-        topY + 4,
-        selectedCenterX - 38,
-        topY + 38,
-        selectedCenterX,
-        topY + 38,
-      )
-      ..cubicTo(
-        selectedCenterX + 38,
-        topY + 38,
-        selectedCenterX + 38,
-        topY + 4,
-        selectedCenterX + 58,
-        topY,
-      )
-      ..cubicTo(
-        selectedCenterX + 104,
-        topY - 12,
-        size.width * 0.80,
-        topY - 12,
-        size.width - cornerRadius,
-        topY,
-      )
-      ..quadraticBezierTo(size.width, topY + 2, size.width, topY + cornerRadius)
-      ..lineTo(size.width, size.height - cornerRadius)
-      ..quadraticBezierTo(
-        size.width,
-        size.height,
-        size.width - cornerRadius,
-        size.height,
-      )
-      ..lineTo(cornerRadius, size.height)
-      ..quadraticBezierTo(0, size.height, 0, size.height - cornerRadius)
-      ..lineTo(0, topY + cornerRadius)
-      ..quadraticBezierTo(0, topY + 2, cornerRadius, topY)
-      ..close();
-
-    final notch = Path()
-      ..addOval(Rect.fromCircle(center: notchCenter, radius: notchRadius));
-
-    return Path.combine(PathOperation.difference, body, notch);
-  }
-
-  @override
-  bool shouldRepaint(covariant _BottomNavShapePainter oldDelegate) {
-    return oldDelegate.selectedCenterX != selectedCenterX ||
-        oldDelegate.color != color;
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: labelColor,
+            fontSize: 10,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
+      ],
+    );
   }
 }

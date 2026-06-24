@@ -57,11 +57,11 @@ class _AutoDismissDialogState extends State<AutoDismissDialog>
 
   void _onDialogReleased() {
     if (!_isUserInteracting) return;
-    
+
     setState(() {
       _isUserInteracting = false;
     });
-    
+
     // Resume the animation after user releases
     if (_animationController.isAnimating == false) {
       _animationController.forward();
@@ -70,6 +70,8 @@ class _AutoDismissDialogState extends State<AutoDismissDialog>
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -80,11 +82,11 @@ class _AutoDismissDialogState extends State<AutoDismissDialog>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: scheme.surface,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: scheme.shadow.withValues(alpha: 0.1),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -95,19 +97,19 @@ class _AutoDismissDialogState extends State<AutoDismissDialog>
             children: [
               Text(
                 widget.title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: scheme.onSurface,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
               Text(
                 widget.message,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: Colors.black54,
+                  color: scheme.onSurfaceVariant,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -119,11 +121,9 @@ class _AutoDismissDialogState extends State<AutoDismissDialog>
                 child: LinearProgressIndicator(
                   value: 1 - _animationController.value,
                   minHeight: 3,
-                  backgroundColor: Colors.grey[300],
+                  backgroundColor: scheme.surfaceContainerHighest,
                   valueColor: AlwaysStoppedAnimation(
-                    _isUserInteracting
-                        ? const Color(0xff13EC5B)
-                        : Colors.orange,
+                    _isUserInteracting ? scheme.primary : scheme.secondary,
                   ),
                 ),
               ),
@@ -145,7 +145,7 @@ void showAutoDismissDialog(
   showDialog(
     context: context,
     barrierDismissible: true, // Click outside to dismiss
-    barrierColor: Colors.black.withOpacity(0.3),
+    barrierColor: Colors.black.withValues(alpha: 0.3),
     builder: (context) => AutoDismissDialog(
       title: title,
       message: message,

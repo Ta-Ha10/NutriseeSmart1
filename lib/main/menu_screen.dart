@@ -18,7 +18,8 @@ class MenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const green = Color(0xff13EC5B);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return ClipRRect(
       borderRadius: const BorderRadius.only(
@@ -27,7 +28,7 @@ class MenuScreen extends StatelessWidget {
       ),
       child: SizedBox.expand(
         child: Container(
-          color: const Color(0xFFF6F8F6),
+          color: colorScheme.surface,
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
@@ -60,7 +61,10 @@ class MenuScreen extends StatelessWidget {
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: green, width: 2),
+                                    border: Border.all(
+                                      color: colorScheme.primary,
+                                      width: 2,
+                                    ),
                                   ),
                                   child: CircleAvatar(
                                     radius: 42,
@@ -72,9 +76,10 @@ class MenuScreen extends StatelessWidget {
                                 const SizedBox(height: 12),
                                 Text(
                                   userName ?? 'Athlete',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
+                                    color: colorScheme.onSurface,
                                   ),
                                 ),
                               ],
@@ -87,7 +92,7 @@ class MenuScreen extends StatelessWidget {
                               context,
                               Icons.person_outline,
                               "Profile",
-                              green,
+                              colorScheme,
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -103,7 +108,7 @@ class MenuScreen extends StatelessWidget {
                               context,
                               Icons.settings_outlined,
                               "Setting",
-                              green,
+                              colorScheme,
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -120,7 +125,7 @@ class MenuScreen extends StatelessWidget {
                               context,
                               Icons.feedback_outlined,
                               "Feedback",
-                              green,
+                              colorScheme,
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -137,7 +142,7 @@ class MenuScreen extends StatelessWidget {
                               context,
                               Icons.favorite_outline,
                               "Favourite",
-                              green,
+                              colorScheme,
                             ),
 
                             const Spacer(),
@@ -148,24 +153,21 @@ class MenuScreen extends StatelessWidget {
                               height: 52,
                               child: OutlinedButton.icon(
                                 onPressed: () => _logout(context),
-                                icon: const Icon(
-                                  Icons.logout,
-                                  color: Colors.red,
-                                ),
-                                label: const Text(
+                                icon: const Icon(Icons.logout),
+                                label: Text(
                                   "Logout",
                                   style: TextStyle(
-                                    color: Colors.red,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 16,
                                   ),
                                 ),
                                 style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Colors.red),
+                                  foregroundColor: colorScheme.error,
+                                  side: BorderSide(color: colorScheme.error),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(14),
                                   ),
-                                  backgroundColor: Colors.white,
+                                  backgroundColor: colorScheme.surface,
                                 ),
                               ),
                             ),
@@ -189,7 +191,7 @@ class MenuScreen extends StatelessWidget {
     BuildContext context,
     IconData icon,
     String title,
-    Color green, {
+    ColorScheme colorScheme, {
     VoidCallback? onTap,
   }) {
     return GestureDetector(
@@ -199,9 +201,9 @@ class MenuScreen extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: green, width: 1.5),
+          border: Border.all(color: colorScheme.primary, width: 1.5),
         ),
         child: Row(
           children: [
@@ -209,22 +211,23 @@ class MenuScreen extends StatelessWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: green.withOpacity(0.12),
+                color: colorScheme.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: green),
+              child: Icon(icon, color: colorScheme.primary),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15.5,
                   fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),
-            Icon(Icons.chevron_right, color: green),
+            Icon(Icons.chevron_right, color: colorScheme.primary),
           ],
         ),
       ),
@@ -244,7 +247,7 @@ class MenuScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text("Logout", style: TextStyle(color: Colors.red)),
+            child: const Text("Logout"),
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import '../../l10n/app_locale.dart';
 import '../../utils/page_transitions.dart';
 import '../../utils/widgets.dart';
 import '../../utils/user_data.dart';
@@ -118,7 +119,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                         Icons.cake,
                         "Birth Date",
                         signupData.birthDay != null
-                            ? '${signupData.birthDay.toString().padLeft(2, '0')}/${signupData.birthMonth.toString().padLeft(2, '0')}/${signupData.birthYear}'
+                            ? '${AppLocaleController.formatNumber(signupData.birthDay!)}/${AppLocaleController.formatNumber(signupData.birthMonth!)}/${AppLocaleController.formatNumber(signupData.birthYear!)}'
                             : 'Not set',
                         () => _showEditBirthDateDialog(),
                       ),
@@ -146,7 +147,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                         Icons.height,
                         "Height",
                         signupData.heightCm != null
-                            ? '${signupData.heightCm!.toStringAsFixed(0)} cm'
+                            ? '${AppLocaleController.formatNumber(signupData.heightCm!.round())} cm'
                             : 'Not set',
                         () => _showEditHeightDialog(),
                       ),
@@ -154,7 +155,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                         Icons.fitness_center,
                         "Current Weight",
                         signupData.currentWeight != null
-                            ? '${signupData.currentWeight!.toStringAsFixed(1)} kg'
+                            ? '${AppLocaleController.localizeDigits(signupData.currentWeight!.toStringAsFixed(1))} kg'
                             : 'Not set',
                         () => _showEditCurrentWeightDialog(),
                       ),
@@ -162,7 +163,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                         Icons.fitness_center,
                         "Goal Weight",
                         signupData.goalWeight != null
-                            ? '${signupData.goalWeight!.toStringAsFixed(1)} kg'
+                            ? '${AppLocaleController.localizeDigits(signupData.goalWeight!.toStringAsFixed(1))} kg'
                             : 'Not set',
                         () => _showEditGoalWeightDialog(),
                       ),
@@ -225,20 +226,22 @@ class _ReviewScreenState extends State<ReviewScreen> {
                       _buildGridDisplayItem(
                         Icons.calendar_today,
                         "Age",
-                        signupData.age > 0 ? signupData.age.toString() : 'N/A',
+                        signupData.age > 0
+                            ? AppLocaleController.formatNumber(signupData.age)
+                            : 'N/A',
                       ),
                       _buildGridDisplayItem(
                         Icons.monitor_weight,
                         "BMI",
                         signupData.bmi != null
-                            ? '${signupData.bmi!.toStringAsFixed(1)} (${signupData.bmiCategory})'
+                            ? '${AppLocaleController.localizeDigits(signupData.bmi!.toStringAsFixed(1))} (${signupData.bmiCategory})'
                             : 'N/A',
                       ),
                       _buildGridDisplayItem(
                         Icons.restaurant_menu,
                         "Target Calories",
                         signupData.targetCalories != null
-                            ? '${signupData.targetCalories!.toStringAsFixed(0)} kcal'
+                            ? '${AppLocaleController.formatNumber(signupData.targetCalories!.round())} kcal'
                             : 'N/A',
                       ),
                     ],
@@ -532,7 +535,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   onSelectedItemChanged: (int index) {
                     signupData.birthDay = index + 1;
                   },
-                  children: List.generate(31, (i) => Center(child: Text('${i + 1}'))),
+                  children: List.generate(
+                    31,
+                    (i) => Center(
+                      child: Text(AppLocaleController.formatNumber(i + 1)),
+                    ),
+                  ),
                 ),
               ),
               Expanded(
@@ -544,7 +552,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   onSelectedItemChanged: (int index) {
                     signupData.birthMonth = index + 1;
                   },
-                  children: List.generate(12, (i) => Center(child: Text('${i + 1}'))),
+                  children: List.generate(
+                    12,
+                    (i) => Center(
+                      child: Text(AppLocaleController.formatNumber(i + 1)),
+                    ),
+                  ),
                 ),
               ),
               Expanded(
@@ -556,7 +569,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   onSelectedItemChanged: (int index) {
                     signupData.birthYear = DateTime.now().year - index;
                   },
-                  children: List.generate(100, (i) => Center(child: Text('${DateTime.now().year - i}'))),
+                  children: List.generate(
+                    100,
+                    (i) => Center(
+                      child: Text(
+                        AppLocaleController.formatNumber(DateTime.now().year - i),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -635,7 +655,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   void _showEditHeightDialog() {
     final heightController = TextEditingController(
-      text: signupData.heightCm?.toStringAsFixed(0) ?? '',
+      text: signupData.heightCm != null
+          ? AppLocaleController.localizeDigits(
+              signupData.heightCm!.toStringAsFixed(0),
+            )
+          : '',
     );
     showDialog(
       context: context,
@@ -695,7 +719,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
             ),
             onPressed: () {
-              final height = double.tryParse(heightController.text);
+              final height = double.tryParse(
+                AppLocaleController.normalizeDigits(heightController.text),
+              );
               if (height != null) {
                 setState(() => signupData.heightCm = height);
               }
@@ -713,7 +739,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   void _showEditCurrentWeightDialog() {
     final weightController = TextEditingController(
-      text: signupData.currentWeight?.toStringAsFixed(1) ?? '',
+      text: signupData.currentWeight != null
+          ? AppLocaleController.localizeDigits(
+              signupData.currentWeight!.toStringAsFixed(1),
+            )
+          : '',
     );
     showDialog(
       context: context,
@@ -773,7 +803,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
             ),
             onPressed: () {
-              final weight = double.tryParse(weightController.text);
+              final weight = double.tryParse(
+                AppLocaleController.normalizeDigits(weightController.text),
+              );
               if (weight != null) {
                 setState(() => signupData.currentWeight = weight);
               }
@@ -791,7 +823,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   void _showEditGoalWeightDialog() {
     final weightController = TextEditingController(
-      text: signupData.goalWeight?.toStringAsFixed(1) ?? '',
+      text: signupData.goalWeight != null
+          ? AppLocaleController.localizeDigits(
+              signupData.goalWeight!.toStringAsFixed(1),
+            )
+          : '',
     );
     showDialog(
       context: context,
@@ -851,7 +887,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
             ),
             onPressed: () {
-              final weight = double.tryParse(weightController.text);
+              final weight = double.tryParse(
+                AppLocaleController.normalizeDigits(weightController.text),
+              );
               if (weight != null) {
                 setState(() => signupData.goalWeight = weight);
               }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import '../../l10n/app_locale.dart';
 import 'name_input_screen.dart';
 
 class IntroCarouselScreen extends StatefulWidget {
@@ -59,6 +60,16 @@ class _IntroCarouselScreenState extends State<IntroCarouselScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  IconButton(
+                    tooltip: AppLocaleController.isArabic()
+                        ? 'تغيير اللغة'
+                        : 'Change language',
+                    onPressed: () => AppLocaleController.setArabicEnabled(
+                      !AppLocaleController.isArabic(),
+                    ),
+                    icon: const Icon(Icons.language),
+                    color: Colors.black87,
+                  ),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(

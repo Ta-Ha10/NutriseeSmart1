@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/recommendation_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../l10n/app_locale.dart';
 
 class RecommendationsScreen extends StatefulWidget {
   const RecommendationsScreen({super.key});
@@ -24,14 +25,16 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+        final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xffF2EDE9),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          'Recommended for You',
+          AppStrings.recommendedForYou(context),
           style: GoogleFonts.inter(fontWeight: FontWeight.w800),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
       ),
       body: FutureBuilder<List<String>>(
@@ -44,7 +47,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
               child: Text(
-                'No recommendations yet.\nRate some recipes to get started!',
+                AppStrings.noRecommendations(context),
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(color: Colors.grey),
               ),
@@ -57,8 +60,14 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
               return Card(
                 margin: const EdgeInsets.all(8),
                 child: ListTile(
-                  title: Text('Recipe ${index + 1}'),
-                  subtitle: const Text('Recommended based on your preferences'),
+                  title: Text(
+                    '${AppLocaleController.isArabic() ? 'الوصفة' : 'Recipe'} ${AppLocaleController.formatNumber(index + 1)}',
+                  ),
+                  subtitle: Text(
+                    AppLocaleController.isArabic()
+                        ? 'مقترح بناءً على تفضيلاتك'
+                        : 'Recommended based on your preferences',
+                  ),
                   trailing: const Icon(Icons.arrow_forward),
                   onTap: () {
                     // Navigate to recipe details
@@ -72,3 +81,4 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
     );
   }
 }
+

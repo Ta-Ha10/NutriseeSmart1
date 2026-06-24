@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
+import '../../l10n/app_locale.dart';
 import '../../utils/auto_dismiss_dialog.dart';
 import '../../utils/page_transitions.dart';
 import '../../utils/user_data.dart';
@@ -94,11 +95,11 @@ class _GenderScreenState extends State<GenderScreen> {
                       ),
                       children: [
                         const TextSpan(
-                          text: "What’s your ",
+                          text: AppLocaleController.isArabic() ? 'ما هو ' : "What's your ",
                           style: TextStyle(fontSize: 25),
                         ),
                         TextSpan(
-                          text: "Gender ?",
+                          text: AppLocaleController.isArabic() ? 'الجنس؟' : 'Gender ?',
                           style: TextStyle(
                             color: const Color(0xff13EC5B),
                             fontWeight: FontWeight.w700,
@@ -114,7 +115,7 @@ class _GenderScreenState extends State<GenderScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        "Behind the question",
+                        AppLocaleController.isArabic() ? 'لماذا نسأل؟' : 'Behind the question',
                         style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                       const SizedBox(width: 8),
@@ -140,7 +141,7 @@ class _GenderScreenState extends State<GenderScreen> {
                         onTap: () => _select("male"),
                         child: _GenderImageCard(
                           imagePath: "assets/Photoes/male.png",
-                          label: "Male",
+                          label: AppLocaleController.isArabic() ? 'ذكر' : 'Male',
                           selected: _selected == "male",
                         ),
                       ),
@@ -151,7 +152,7 @@ class _GenderScreenState extends State<GenderScreen> {
                         onTap: () => _select("female"),
                         child: _GenderImageCard(
                           imagePath: "assets/Photoes/female.png",
-                          label: "Female",
+                          label: AppLocaleController.isArabic() ? 'أنثى' : 'Female',
                           selected: _selected == "female",
                         ),
                       ),
@@ -169,7 +170,7 @@ class _GenderScreenState extends State<GenderScreen> {
                       ),
                       child: const Center(
                         child: Text(
-                          'Select a gender to continue',
+                          AppLocaleController.isArabic() ? 'اختر الجنس للمتابعة' : 'Select a gender to continue',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -235,3 +236,4 @@ class _GenderImageCard extends StatelessWidget {
     );
   }
 }
+

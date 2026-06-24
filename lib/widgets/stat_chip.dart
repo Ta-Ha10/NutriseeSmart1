@@ -8,11 +8,12 @@ class StatChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Chip(
-      avatar: Icon(icon, color: Colors.green),
+      avatar: Icon(icon, color: scheme.primary),
       label: Text(text),
-      backgroundColor: Colors.white,
+      backgroundColor: scheme.surface,
     );
   }
 }
-

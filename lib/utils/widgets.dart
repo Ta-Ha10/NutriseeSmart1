@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 import 'page_transitions.dart';
+import '../l10n/app_locale.dart';
 
 /// Reusable header with animated indicator and back button
 class IndicatorHeader extends StatelessWidget {
@@ -10,21 +10,23 @@ class IndicatorHeader extends StatelessWidget {
   final VoidCallback? onBackPressed;
 
   const IndicatorHeader({
-    Key? key,
+    super.key,
     required this.activeIndex,
     this.totalCount = 10,
     this.showBackButton = true,
     this.onBackPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         if (showBackButton)
           IconButton(
             icon: const Icon(Icons.arrow_back_ios),
-            color: Colors.black,
+            color: scheme.onSurface,
             iconSize: 28,
             onPressed: onBackPressed ?? () => Navigator.pop(context),
           )
@@ -35,12 +37,19 @@ class IndicatorHeader extends StatelessWidget {
           activeIndex: activeIndex,
           count: totalCount,
           animationDuration: const Duration(milliseconds: 400),
-          activeColor: const Color(0xff13EC5B),
-          inactiveColor: const Color(0xFFCCCCCC),
+          activeColor: scheme.primary,
+          inactiveColor: scheme.outlineVariant,
           dotSize: 10.0,
         ),
         const Spacer(),
-        Gap(30)
+        IconButton(
+          tooltip: AppLocaleController.isArabic() ? '\u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0644\u063A\u0629' : 'Change language',
+          icon: const Icon(Icons.language),
+          color: scheme.onSurface,
+          onPressed: () => AppLocaleController.setArabicEnabled(
+            !AppLocaleController.isArabic(),
+          ),
+        ),
       ],
     );
   }
@@ -54,21 +63,22 @@ class NextButton extends StatelessWidget {
   final double height;
 
   const NextButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     this.label = 'Next',
     this.width = double.infinity,
     this.height = 50,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return SizedBox(
       width: width,
       height: height,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xff13EC5B),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
@@ -76,10 +86,10 @@ class NextButton extends StatelessWidget {
         onPressed: onPressed,
         child: Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: scheme.onPrimary,
           ),
         ),
       ),
@@ -113,6 +123,8 @@ class SignupStepBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(25, 10, 25, 16),
@@ -135,7 +147,10 @@ class SignupStepBody extends StatelessWidget {
                 children: [
                   Text(
                     helperText,
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
@@ -143,7 +158,7 @@ class SignupStepBody extends StatelessWidget {
                     child: Icon(
                       Icons.help_outline,
                       size: 16,
-                      color: Colors.grey[600],
+                      color: scheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -159,3 +174,4 @@ class SignupStepBody extends StatelessWidget {
     );
   }
 }
+

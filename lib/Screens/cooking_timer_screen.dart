@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'recipe_feedback.dart';
 import '../services/ai_chat_service.dart';
+import '../l10n/app_locale.dart';
 
 class CookingTimerScreen extends StatefulWidget {
   final String recipeName;
@@ -251,7 +252,8 @@ class _CookingTimerScreenState extends State<CookingTimerScreen> {
   String _formatTime(int seconds) {
     final minutes = seconds ~/ 60;
     final secs = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+    final raw = '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+    return AppLocaleController.localizeDigits(raw);
   }
 
   @override
@@ -490,7 +492,7 @@ class _CookingTimerScreenState extends State<CookingTimerScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Step ${_currentStepIndex + 1} of ${_aiGeneratedSteps.length}',
+                                'Step ${AppLocaleController.formatNumber(_currentStepIndex + 1)} of ${AppLocaleController.formatNumber(_aiGeneratedSteps.length)}',
                                 style: GoogleFonts.inter(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -498,7 +500,7 @@ class _CookingTimerScreenState extends State<CookingTimerScreen> {
                                 ),
                               ),
                               Text(
-                                '$completedCount / ${_aiGeneratedSteps.length} done',
+                                '${AppLocaleController.formatNumber(completedCount)} / ${AppLocaleController.formatNumber(_aiGeneratedSteps.length)} done',
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
                                   color: Colors.grey[600],
@@ -551,7 +553,9 @@ class _CookingTimerScreenState extends State<CookingTimerScreen> {
                                       ),
                                       child: Center(
                                         child: Text(
-                                          '${_currentStepIndex + 1}',
+                                          AppLocaleController.formatNumber(
+                                            _currentStepIndex + 1,
+                                          ),
                                           style: GoogleFonts.inter(
                                             fontWeight: FontWeight.w800,
                                             color: Colors.white,
@@ -563,7 +567,7 @@ class _CookingTimerScreenState extends State<CookingTimerScreen> {
                                     const SizedBox(width: 16),
                                     Expanded(
                                       child: Text(
-                                        'Step ${_currentStepIndex + 1}',
+                                        'Step ${AppLocaleController.formatNumber(_currentStepIndex + 1)}',
                                         style: GoogleFonts.inter(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w700,
@@ -775,7 +779,7 @@ class _CookingTimerScreenState extends State<CookingTimerScreen> {
                                         );
                                       },
                                       child: Text(
-                                        'Step ${index + 1}',
+                                        'Step ${AppLocaleController.formatNumber(index + 1)}',
                                         style: GoogleFonts.inter(
                                           fontSize: 13,
                                           color: _currentStepIndex == index

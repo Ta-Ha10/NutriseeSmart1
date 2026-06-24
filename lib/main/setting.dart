@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:nutriseesmart1/theme/app_theme.dart';
+import '../l10n/app_locale.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -9,24 +11,27 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool darkMode = false;
   bool isMetric = true;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final isArabic = AppLocaleController.isArabic();
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          "Setting",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          AppStrings.settings(context),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: SingleChildScrollView(
@@ -39,9 +44,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Color(0xFFFFC107),
+                    color: colorScheme.secondary,
                   ),
                   child: const CircleAvatar(
                     radius: 30,
@@ -51,19 +56,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Text(
-                  "Alex Johnson",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  AppStrings.profileName(context),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 28),
 
             // PREFERENCES Section
-            const Text(
-              "PREFERENCES",
+            Text(
+              AppStrings.preferences(context),
               style: TextStyle(
-                color: Colors.grey,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
@@ -74,25 +82,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Preferences Container
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
                 children: [
                   // Language
-                  ListTile(
-                    leading: const Icon(
-                      Icons.language,
-                      color: Color(0xff13EC5B),
+                  SwitchListTile(
+                    secondary: Icon(Icons.language, color: colorScheme.primary),
+                    title: Text(
+                      AppStrings.language(context),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    title: const Text(
-                      "Language",
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                    subtitle: Text(
+                      AppStrings.languageSubtitle(context),
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
                     ),
-                    trailing: const Text(
-                      "English(US)",
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
-                    ),
+                    value: isArabic,
+                    activeThumbColor: colorScheme.primary,
+                    onChanged: (val) => AppLocaleController.setArabicEnabled(val),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
@@ -102,21 +113,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   // Dark Mode
                   SwitchListTile(
-                    secondary: const Icon(
+                    secondary: Icon(
                       Icons.dark_mode,
-                      color: Color(0xFFFFC107),
+                      color: colorScheme.secondary,
                     ),
-                    title: const Text(
-                      "Dark Mode",
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                    title: Text(
+                      AppStrings.darkMode(context),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    value: darkMode,
-                    activeColor: const Color(0xff13EC5B),
-                    onChanged: (val) {
-                      setState(() {
-                        darkMode = val;
-                      });
-                    },
+                    value: isDarkMode,
+                    activeThumbColor: colorScheme.primary,
+                    onChanged: AppTheme.setDarkMode,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
@@ -126,15 +133,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   // Units
                   ListTile(
-                    leading: const Icon(Icons.straighten, color: Colors.brown),
-                    title: const Text(
-                      "Units",
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                    leading: Icon(
+                      Icons.straighten,
+                      color: colorScheme.tertiary,
+                    ),
+                    title: Text(
+                      AppStrings.units(context),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     trailing: Container(
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: const Color(0xff13EC5B),
+                          color: colorScheme.primary,
                           width: 1,
                         ),
                         borderRadius: BorderRadius.circular(20),
@@ -155,7 +165,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: isMetric
-                                    ? const Color(0xff13EC5B)
+                                    ? colorScheme.primary
                                     : Colors.transparent,
                                 borderRadius: const BorderRadius.only(
                                   topLeft: Radius.circular(20),
@@ -163,9 +173,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                               ),
                               child: Text(
-                                "Metric",
+                                AppStrings.metric(context),
                                 style: TextStyle(
-                                  color: isMetric ? Colors.white : Colors.black,
+                                  color: isMetric
+                                      ? colorScheme.onPrimary
+                                      : colorScheme.onSurface,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 12,
                                 ),
@@ -185,7 +197,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: !isMetric
-                                    ? const Color(0xff13EC5B)
+                                    ? colorScheme.primary
                                     : Colors.transparent,
                                 borderRadius: const BorderRadius.only(
                                   topRight: Radius.circular(20),
@@ -193,11 +205,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                               ),
                               child: Text(
-                                "Imperial",
+                                AppStrings.imperial(context),
                                 style: TextStyle(
                                   color: !isMetric
-                                      ? Colors.white
-                                      : Colors.black,
+                                      ? colorScheme.onPrimary
+                                      : colorScheme.onSurface,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 12,
                                 ),
@@ -218,10 +230,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 28),
 
             // ACCOUNT Section
-            const Text(
-              "ACCOUNT",
+            Text(
+              AppStrings.account(context),
               style: TextStyle(
-                color: Colors.grey,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
@@ -232,21 +243,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Account Container
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.person, color: Color(0xff13EC5B)),
-                    title: const Text(
-                      "Edit Profile",
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                    leading: Icon(Icons.person, color: colorScheme.primary),
+                    title: Text(
+                      AppStrings.editProfile(context),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.arrow_forward_ios,
                       size: 16,
-                      color: Colors.grey,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -255,18 +266,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const Divider(height: 1, indent: 56),
                   ListTile(
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.notifications,
-                      color: Color(0xFFFFC107),
+                      color: colorScheme.secondary,
                     ),
-                    title: const Text(
-                      "Notifications",
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                    title: Text(
+                      AppStrings.notifications(context),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.arrow_forward_ios,
                       size: 16,
-                      color: Colors.grey,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -287,19 +298,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   final confirmed = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text("Logout"),
-                      content: const Text("Are you sure you want to logout?"),
+                      title: Text(AppStrings.logoutDialogTitle(context)),
+                      content: Text(AppStrings.logoutDialogBody(context)),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: const Text("Cancel"),
+                          child: Text(AppStrings.cancel(context)),
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
-                          child: const Text(
-                            "Logout",
-                            style: TextStyle(color: Colors.red),
-                          ),
+                          child: Text(AppStrings.confirmLogout(context)),
                         ),
                       ],
                     ),
@@ -314,17 +322,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   }
                 },
-                icon: const Icon(Icons.logout, color: Colors.red),
-                label: const Text(
-                  "Log out",
-                  style: TextStyle(
-                    color: Colors.red,
+                icon: const Icon(Icons.logout),
+                label: Text(
+                  AppStrings.logOut(context),
+                  style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.red, width: 1.5),
+                  foregroundColor: colorScheme.error,
+                  side: BorderSide(color: colorScheme.error, width: 1.5),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
